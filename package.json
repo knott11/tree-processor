@@ -1,0 +1,68 @@
+{
+  "name": "tree-processor",
+  "version": "0.5.0",
+  "description": "A lightweight TypeScript library for processing tree-structured data with comprehensive methods (map, filter, find, push, pop, remove, getParent, includes, etc.), supporting tree-shaking and custom field names",
+  "main": "dist/tree-processor.cjs.js",
+  "module": "dist/tree-processor.esm.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/tree-processor.esm.js",
+      "require": "./dist/tree-processor.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "size:dist": "node scripts/check-size.js",
+    "size:src": "node scripts/check-src-size.js",
+    "size:all": "npm run size:src && npm run size:dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tree",
+    "array",
+    "map",
+    "find",
+    "filter",
+    "push",
+    "unshift",
+    "pop",
+    "shift",
+    "some",
+    "every",
+    "at",
+    "indexOf",
+    "deduplication",
+    "tree-processor"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "rollup": "^4.24.0",
+    "rollup-plugin-visualizer": "^6.0.5",
+    "terser": "^5.36.0",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
