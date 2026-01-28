@@ -633,12 +633,12 @@ export function includesTree(
 }
 
 /**
- * 判断数据是否是树结构（单个对象）
+ * 判断数据是否是单个树结构（单个对象）
  * @param data 待判断的数据
  * @param fieldNames 自定义字段名配置
- * @returns 如果是树结构返回 true，否则返回 false
+ * @returns 如果是单个树结构返回 true，否则返回 false
  */
-export function isTree(
+export function isSingleTree(
   data: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
@@ -664,7 +664,7 @@ export function isTree(
     
     // 递归检查每个子节点是否也是树结构
     for (const child of children) {
-      if (!isTree(child, fieldNames)) {
+      if (!isSingleTree(child, fieldNames)) {
         return false;
       }
     }
@@ -674,12 +674,12 @@ export function isTree(
 }
 
 /**
- * 判断数据是否是森林结构（数组）
+ * 判断数据是否是多个树结构（数组）
  * @param data 待判断的数据
  * @param fieldNames 自定义字段名配置
- * @returns 如果是森林结构返回 true，否则返回 false
+ * @returns 如果是多个树结构返回 true，否则返回 false
  */
-export function isForest(
+export function isMultipleTrees(
   data: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
@@ -690,7 +690,7 @@ export function isForest(
 
   // 数组中的每个元素都必须是树结构
   for (const item of data) {
-    if (!isTree(item, fieldNames)) {
+    if (!isSingleTree(item, fieldNames)) {
       return false;
     }
   }
@@ -721,8 +721,8 @@ const treeProcessor = {
   isEmptyTree,
   getParentTree,
   includesTree,
-  isTree,
-  isForest,
+  isSingleTree,
+  isMultipleTrees,
 };
 
 export default treeProcessor;

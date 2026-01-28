@@ -2,7 +2,7 @@
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **3-4 KB**（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）。
 
-目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTree、isTree 和 isForest。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTree、isSingleTree 和 isMultipleTrees。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
 
 ## ✨ 特性
 
@@ -280,12 +280,12 @@ const isEmpty = t.isEmptyTree(treeData)
 console.log(isEmpty) // true 表示树为空，false 表示树不为空
 ```
 
-### isTree（判断数据是否是树结构）
+### isSingleTree（判断数据是否是单个树结构）
 
-判断数据是否是树结构（单个对象）。树结构必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
+判断数据是否是单个树结构（单个对象）。树结构必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
 
 ```javascript
-// 有效的树结构
+// 有效的单个树结构
 const tree = {
   id: 1,
   name: 'node1',
@@ -295,7 +295,7 @@ const tree = {
   ],
 };
 
-const isValid = t.isTree(tree)
+const isValid = t.isSingleTree(tree)
 console.log(isValid) // true
 
 // 无效的树结构
@@ -304,7 +304,7 @@ const invalidTree = {
   children: null, // children 不能是 null
 };
 
-const isInvalid = t.isTree(invalidTree)
+const isInvalid = t.isSingleTree(invalidTree)
 console.log(isInvalid) // false
 
 // 支持自定义字段名
@@ -317,16 +317,16 @@ const customTree = {
 };
 
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isTree(customTree, fieldNames)
+const isValidCustom = t.isSingleTree(customTree, fieldNames)
 console.log(isValidCustom) // true
 ```
 
-### isForest（判断数据是否是森林结构）
+### isMultipleTrees（判断数据是否是多个树结构）
 
-判断数据是否是森林结构（数组）。森林结构必须是一个数组，数组中的每个元素都必须是有效的树结构。
+判断数据是否是多个树结构（数组）。多个树结构必须是一个数组，数组中的每个元素都必须是有效的单个树结构。
 
 ```javascript
-// 有效的森林结构
+// 有效的多个树结构
 const forest = [
   {
     id: 1,
@@ -342,21 +342,21 @@ const forest = [
   },
 ];
 
-const isValid = t.isForest(forest)
+const isValid = t.isMultipleTrees(forest)
 console.log(isValid) // true
 
-// 空数组也是有效的森林结构
+// 空数组也是有效的多个树结构
 const emptyForest = []
-const isEmptyValid = t.isForest(emptyForest)
+const isEmptyValid = t.isMultipleTrees(emptyForest)
 console.log(isEmptyValid) // true
 
-// 无效的森林结构
+// 无效的多个树结构
 const invalidForest = [
   { id: 1, children: [{ id: 2 }] },
   'not a tree', // 数组元素必须是树结构
 ];
 
-const isInvalid = t.isForest(invalidForest)
+const isInvalid = t.isMultipleTrees(invalidForest)
 console.log(isInvalid) // false
 
 // 支持自定义字段名
@@ -371,7 +371,7 @@ const customForest = [
 ];
 
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isForest(customForest, fieldNames)
+const isValidCustom = t.isMultipleTrees(customForest, fieldNames)
 console.log(isValidCustom) // true
 ```
 

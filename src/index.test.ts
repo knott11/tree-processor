@@ -19,8 +19,8 @@ import {
   isEmptyTree,
   getParentTree,
   includesTree,
-  isTree,
-  isForest,
+  isSingleTree,
+  isMultipleTrees,
 } from './index';
 
 describe('Tree Processor', () => {
@@ -1101,7 +1101,7 @@ describe('Tree Processor', () => {
     });
   });
 
-  describe('isTree', () => {
+  describe('isSingleTree', () => {
     describe('基础功能', () => {
       it('应该识别有效的树结构（单个对象）', () => {
         const tree = {
@@ -1112,7 +1112,7 @@ describe('Tree Processor', () => {
             { id: 3, name: 'node3' },
           ],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
 
       it('应该识别没有子节点的树结构', () => {
@@ -1120,7 +1120,7 @@ describe('Tree Processor', () => {
           id: 1,
           name: 'node1',
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
 
       it('应该识别深层嵌套的树结构', () => {
@@ -1141,7 +1141,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
 
       it('应该识别空 children 数组的树结构', () => {
@@ -1150,37 +1150,37 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isTree(null)).toBe(false);
+        expect(isSingleTree(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isTree(undefined)).toBe(false);
+        expect(isSingleTree(undefined)).toBe(false);
       });
 
       it('应该拒绝数组', () => {
-        expect(isTree([{ id: 1 }])).toBe(false);
+        expect(isSingleTree([{ id: 1 }])).toBe(false);
       });
 
       it('应该拒绝基本类型（字符串）', () => {
-        expect(isTree('string')).toBe(false);
+        expect(isSingleTree('string')).toBe(false);
       });
 
       it('应该拒绝基本类型（数字）', () => {
-        expect(isTree(123)).toBe(false);
+        expect(isSingleTree(123)).toBe(false);
       });
 
       it('应该拒绝基本类型（布尔值）', () => {
-        expect(isTree(true)).toBe(false);
+        expect(isSingleTree(true)).toBe(false);
       });
 
       it('应该拒绝空对象（没有 children 字段）', () => {
-        expect(isTree({})).toBe(true); // 空对象也是有效的树结构
+        expect(isSingleTree({})).toBe(true); // 空对象也是有效的树结构
       });
 
       it('应该拒绝 children 不是数组的对象', () => {
@@ -1188,7 +1188,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: 'not an array',
         };
-        expect(isTree(invalidTree)).toBe(false);
+        expect(isSingleTree(invalidTree)).toBe(false);
       });
 
       it('应该拒绝 children 是 null 的对象', () => {
@@ -1196,7 +1196,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: null,
         };
-        expect(isTree(invalidTree)).toBe(false);
+        expect(isSingleTree(invalidTree)).toBe(false);
       });
 
       it('应该拒绝包含非树结构子节点的对象', () => {
@@ -1207,7 +1207,7 @@ describe('Tree Processor', () => {
             'not a tree node', // 无效的子节点
           ],
         };
-        expect(isTree(invalidTree)).toBe(false);
+        expect(isSingleTree(invalidTree)).toBe(false);
       });
 
       it('应该拒绝包含数组子节点的对象', () => {
@@ -1218,7 +1218,7 @@ describe('Tree Processor', () => {
             [{ id: 3, name: 'node3' }], // 数组不是有效的树节点
           ],
         };
-        expect(isTree(invalidTree)).toBe(false);
+        expect(isSingleTree(invalidTree)).toBe(false);
       });
     });
 
@@ -1233,7 +1233,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: 'subNodes', id: 'id' };
-        expect(isTree(tree, fieldNames)).toBe(true);
+        expect(isSingleTree(tree, fieldNames)).toBe(true);
       });
 
       it('应该支持中文字段名', () => {
@@ -1245,7 +1245,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: '子节点', id: 'id' };
-        expect(isTree(tree, fieldNames)).toBe(true);
+        expect(isSingleTree(tree, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名且递归检查子节点', () => {
@@ -1263,7 +1263,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTree(tree, fieldNames)).toBe(true);
+        expect(isSingleTree(tree, fieldNames)).toBe(true);
       });
 
       it('应该在使用自定义字段名时拒绝无效结构', () => {
@@ -1272,7 +1272,7 @@ describe('Tree Processor', () => {
           subNodes: 'not an array',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTree(invalidTree, fieldNames)).toBe(false);
+        expect(isSingleTree(invalidTree, fieldNames)).toBe(false);
       });
     });
 
@@ -1294,7 +1294,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
 
       it('应该处理不平衡树结构', () => {
@@ -1310,7 +1310,7 @@ describe('Tree Processor', () => {
             { id: 5 }, // 没有子节点
           ],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
 
       it('应该处理单分支树（每个节点只有一个子节点）', () => {
@@ -1328,12 +1328,12 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isTree(tree)).toBe(true);
+        expect(isSingleTree(tree)).toBe(true);
       });
     });
   });
 
-  describe('isForest', () => {
+  describe('isMultipleTrees', () => {
     describe('基础功能', () => {
       it('应该识别有效的森林结构（数组）', () => {
         const forest = [
@@ -1350,7 +1350,7 @@ describe('Tree Processor', () => {
             children: [{ id: 4, name: 'node4' }],
           },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
 
       it('应该识别包含单棵树的森林', () => {
@@ -1363,11 +1363,11 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
 
       it('应该识别空数组（空森林）', () => {
-        expect(isForest([])).toBe(true);
+        expect(isMultipleTrees([])).toBe(true);
       });
 
       it('应该识别包含没有子节点的树的森林', () => {
@@ -1376,7 +1376,7 @@ describe('Tree Processor', () => {
           { id: 2, name: 'node2' },
           { id: 3, name: 'node3' },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
 
       it('应该识别深层嵌套的森林', () => {
@@ -1400,17 +1400,17 @@ describe('Tree Processor', () => {
             children: [{ id: 6 }],
           },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isForest(null)).toBe(false);
+        expect(isMultipleTrees(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isForest(undefined)).toBe(false);
+        expect(isMultipleTrees(undefined)).toBe(false);
       });
 
       it('应该拒绝非数组类型（对象）', () => {
@@ -1418,15 +1418,15 @@ describe('Tree Processor', () => {
           id: 1,
           children: [{ id: 2 }],
         };
-        expect(isForest(tree)).toBe(false);
+        expect(isMultipleTrees(tree)).toBe(false);
       });
 
       it('应该拒绝非数组类型（字符串）', () => {
-        expect(isForest('string')).toBe(false);
+        expect(isMultipleTrees('string')).toBe(false);
       });
 
       it('应该拒绝非数组类型（数字）', () => {
-        expect(isForest(123)).toBe(false);
+        expect(isMultipleTrees(123)).toBe(false);
       });
 
       it('应该拒绝包含非树结构元素的数组', () => {
@@ -1434,7 +1434,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           'not a tree', // 无效元素
         ];
-        expect(isForest(invalidForest)).toBe(false);
+        expect(isMultipleTrees(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含数组元素的数组', () => {
@@ -1442,7 +1442,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           [{ id: 3 }], // 数组不是树结构
         ];
-        expect(isForest(invalidForest)).toBe(false);
+        expect(isMultipleTrees(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含 null 元素的数组', () => {
@@ -1450,7 +1450,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           null,
         ];
-        expect(isForest(invalidForest)).toBe(false);
+        expect(isMultipleTrees(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含无效树结构的数组', () => {
@@ -1458,7 +1458,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           { id: 3, children: 'not an array' }, // 无效的树结构
         ];
-        expect(isForest(invalidForest)).toBe(false);
+        expect(isMultipleTrees(invalidForest)).toBe(false);
       });
     });
 
@@ -1479,7 +1479,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'id' };
-        expect(isForest(forest, fieldNames)).toBe(true);
+        expect(isMultipleTrees(forest, fieldNames)).toBe(true);
       });
 
       it('应该支持中文字段名', () => {
@@ -1493,7 +1493,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: '子节点', id: 'id' };
-        expect(isForest(forest, fieldNames)).toBe(true);
+        expect(isMultipleTrees(forest, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名且递归检查所有树', () => {
@@ -1516,7 +1516,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isForest(forest, fieldNames)).toBe(true);
+        expect(isMultipleTrees(forest, fieldNames)).toBe(true);
       });
 
       it('应该在使用自定义字段名时拒绝无效结构', () => {
@@ -1531,7 +1531,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isForest(invalidForest, fieldNames)).toBe(false);
+        expect(isMultipleTrees(invalidForest, fieldNames)).toBe(false);
       });
     });
 
@@ -1555,7 +1555,7 @@ describe('Tree Processor', () => {
             children: [{ id: 7 }, { id: 8 }],
           },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
 
       it('应该处理包含各种数据类型的森林', () => {
@@ -1575,7 +1575,7 @@ describe('Tree Processor', () => {
             children: [{ id: 3 }],
           },
         ];
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
 
       it('应该处理大型森林（多棵树）', () => {
@@ -1586,7 +1586,7 @@ describe('Tree Processor', () => {
             { id: (i + 1) * 10 + 2 },
           ],
         }));
-        expect(isForest(forest)).toBe(true);
+        expect(isMultipleTrees(forest)).toBe(true);
       });
     });
   });
