@@ -633,6 +633,72 @@ export function includesTree(
 }
 
 /**
+ * 判断数据是否是树结构（单个对象）
+ * @param data 待判断的数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果是树结构返回 true，否则返回 false
+ */
+export function isTree(
+  data: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // 必须是对象，不能是 null、undefined、数组或基本类型
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return false;
+  }
+
+  // 检查是否有 children 字段
+  const children = data[fieldNames.children];
+  
+  // 如果 children 字段存在
+  if (children !== undefined) {
+    // 如果是 null，不是有效的树结构
+    if (children === null) {
+      return false;
+    }
+    
+    // 必须是数组
+    if (!Array.isArray(children)) {
+      return false;
+    }
+    
+    // 递归检查每个子节点是否也是树结构
+    for (const child of children) {
+      if (!isTree(child, fieldNames)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * 判断数据是否是森林结构（数组）
+ * @param data 待判断的数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果是森林结构返回 true，否则返回 false
+ */
+export function isForest(
+  data: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // 必须是数组
+  if (!Array.isArray(data)) {
+    return false;
+  }
+
+  // 数组中的每个元素都必须是树结构
+  for (const item of data) {
+    if (!isTree(item, fieldNames)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * 默认导出对象，包含所有方法
  */
 const treeProcessor = {
@@ -655,6 +721,8 @@ const treeProcessor = {
   isEmptyTree,
   getParentTree,
   includesTree,
+  isTree,
+  isForest,
 };
 
 export default treeProcessor;

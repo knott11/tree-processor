@@ -2,7 +2,7 @@
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **3-4 KB**（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）。
 
-目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree 和 isEmptyTree。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTree、isTree 和 isForest。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
 
 ## ✨ 特性
 
@@ -12,7 +12,7 @@
 - 🎯 **类似数组 API** - 提供 map、filter、find 等熟悉的数组方法
 - ⚙️ **自定义字段名** - 支持自定义 children 和 id 字段名
 - ✅ **零依赖** - 无外部依赖，开箱即用
-- 🧪 **完善的测试覆盖** - 包含 117 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景、npm 包导入等
+- 🧪 **完善的测试覆盖** - 包含 160 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景、npm 包导入等
 
 ## 📦 安装
 
@@ -278,6 +278,101 @@ console.log(treeData) // 删除后的树结构
 const isEmpty = t.isEmptyTree(treeData)
 
 console.log(isEmpty) // true 表示树为空，false 表示树不为空
+```
+
+### isTree（判断数据是否是树结构）
+
+判断数据是否是树结构（单个对象）。树结构必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
+
+```javascript
+// 有效的树结构
+const tree = {
+  id: 1,
+  name: 'node1',
+  children: [
+    { id: 2, name: 'node2' },
+    { id: 3, name: 'node3' },
+  ],
+};
+
+const isValid = t.isTree(tree)
+console.log(isValid) // true
+
+// 无效的树结构
+const invalidTree = {
+  id: 1,
+  children: null, // children 不能是 null
+};
+
+const isInvalid = t.isTree(invalidTree)
+console.log(isInvalid) // false
+
+// 支持自定义字段名
+const customTree = {
+  nodeId: 1,
+  name: 'node1',
+  subNodes: [
+    { nodeId: 2, name: 'node2' },
+  ],
+};
+
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const isValidCustom = t.isTree(customTree, fieldNames)
+console.log(isValidCustom) // true
+```
+
+### isForest（判断数据是否是森林结构）
+
+判断数据是否是森林结构（数组）。森林结构必须是一个数组，数组中的每个元素都必须是有效的树结构。
+
+```javascript
+// 有效的森林结构
+const forest = [
+  {
+    id: 1,
+    name: 'node1',
+    children: [
+      { id: 2, name: 'node2' },
+    ],
+  },
+  {
+    id: 3,
+    name: 'node3',
+    children: [{ id: 4, name: 'node4' }],
+  },
+];
+
+const isValid = t.isForest(forest)
+console.log(isValid) // true
+
+// 空数组也是有效的森林结构
+const emptyForest = []
+const isEmptyValid = t.isForest(emptyForest)
+console.log(isEmptyValid) // true
+
+// 无效的森林结构
+const invalidForest = [
+  { id: 1, children: [{ id: 2 }] },
+  'not a tree', // 数组元素必须是树结构
+];
+
+const isInvalid = t.isForest(invalidForest)
+console.log(isInvalid) // false
+
+// 支持自定义字段名
+const customForest = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' },
+    ],
+  },
+];
+
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const isValidCustom = t.isForest(customForest, fieldNames)
+console.log(isValidCustom) // true
 ```
 
 ## 自定义字段名

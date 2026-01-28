@@ -1,6 +1,6 @@
 {
   "name": "tree-processor",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A lightweight TypeScript library for processing tree-structured data with comprehensive methods (map, filter, find, push, pop, remove, getParent, includes, etc.), supporting tree-shaking and custom field names",
   "main": "dist/tree-processor.cjs.js",
   "module": "dist/tree-processor.esm.js",
@@ -49,7 +49,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/knott11/tree-processor"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.1",
