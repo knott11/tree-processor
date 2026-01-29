@@ -564,12 +564,45 @@ export function forEachTree(
 /**
  * 检查树结构数据是否为空
  * @param tree 树结构数据
- * @returns 如果树为空返回 true，否则返回 false
+ * @returns 如果树结构数据为空返回 true，否则返回 false
  */
-export function isEmptyTree(
+export function isEmptyTreeData(
   tree: TreeData
 ): boolean {
   return !Array.isArray(tree) || tree.length === 0;
+}
+
+/**
+ * 检查单个树结构数据是否为空
+ * @param data 单个树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果单个树结构数据为空返回 true，否则返回 false
+ */
+export function isEmptySingleTreeData(
+  data: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // 如果不是有效的单个树结构数据，视为空
+  if (!isSingleTreeData(data, fieldNames)) {
+    return true;
+  }
+
+  // 检查是否有 children 字段
+  const children = data[fieldNames.children];
+
+  // 如果没有 children 字段，视为空（只有根节点，没有子节点）
+  if (children === undefined) {
+    return true;
+  }
+
+  // 如果 children 是空数组，视为空
+  if (!Array.isArray(children) || children.length === 0) {
+    return true;
+  }
+
+  // 如果有子节点，即使子节点本身是空的，树本身也不为空
+  // 只有当树本身没有子节点时，才视为空
+  return false;
 }
 
 /**
@@ -633,12 +666,12 @@ export function includesTree(
 }
 
 /**
- * 判断数据是否是单个树结构（单个对象）
+ * 判断数据是否是单个树结构数据（单个对象）
  * @param data 待判断的数据
  * @param fieldNames 自定义字段名配置
- * @returns 如果是单个树结构返回 true，否则返回 false
+ * @returns 如果是单个树结构数据返回 true，否则返回 false
  */
-export function isSingleTree(
+export function isSingleTreeData(
   data: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
@@ -664,7 +697,7 @@ export function isSingleTree(
     
     // 递归检查每个子节点是否也是树结构
     for (const child of children) {
-      if (!isSingleTree(child, fieldNames)) {
+      if (!isSingleTreeData(child, fieldNames)) {
         return false;
       }
     }
@@ -674,12 +707,12 @@ export function isSingleTree(
 }
 
 /**
- * 判断数据是否是多个树结构（数组）
+ * 判断数据是否是树结构数据（数组）
  * @param data 待判断的数据
  * @param fieldNames 自定义字段名配置
- * @returns 如果是多个树结构返回 true，否则返回 false
+ * @returns 如果是树结构数据返回 true，否则返回 false
  */
-export function isMultipleTrees(
+export function isTreeData(
   data: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
@@ -690,7 +723,7 @@ export function isMultipleTrees(
 
   // 数组中的每个元素都必须是树结构
   for (const item of data) {
-    if (!isSingleTree(item, fieldNames)) {
+    if (!isSingleTreeData(item, fieldNames)) {
       return false;
     }
   }
@@ -718,11 +751,12 @@ const treeProcessor = {
   dedupTree,
   removeTree,
   forEachTree,
-  isEmptyTree,
+  isEmptyTreeData,
+  isEmptySingleTreeData,
   getParentTree,
   includesTree,
-  isSingleTree,
-  isMultipleTrees,
+  isSingleTreeData,
+  isTreeData,
 };
 
 export default treeProcessor;

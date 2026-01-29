@@ -93,7 +93,7 @@ describe('按需导入测试', () => {
       dedupTree,
       removeTree,
       forEachTree,
-      isEmptyTree,
+      isEmptyTreeData,
       getParentTree,
       includesTree,
     } = await import('./index.js');
@@ -115,7 +115,7 @@ describe('按需导入测试', () => {
     expect(typeof dedupTree).toBe('function');
     expect(typeof removeTree).toBe('function');
     expect(typeof forEachTree).toBe('function');
-    expect(typeof isEmptyTree).toBe('function');
+    expect(typeof isEmptyTreeData).toBe('function');
     expect(typeof getParentTree).toBe('function');
     expect(typeof includesTree).toBe('function');
   });

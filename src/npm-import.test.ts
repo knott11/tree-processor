@@ -88,7 +88,7 @@ describe('从 npm 包引入测试', () => {
         nodeDepthMap,
         dedupTree,
         removeTree,
-        isEmptyTree,
+        isEmptyTreeData,
       } = await import('../dist/tree-processor.esm.js');
 
       // 验证所有函数都存在
@@ -110,7 +110,7 @@ describe('从 npm 包引入测试', () => {
       expect(typeof nodeDepthMap).toBe('function');
       expect(typeof dedupTree).toBe('function');
       expect(typeof removeTree).toBe('function');
-      expect(typeof isEmptyTree).toBe('function');
+      expect(typeof isEmptyTreeData).toBe('function');
     });
 
     it('应该能够使用默认导出', async () => {
@@ -156,7 +156,7 @@ describe('从 npm 包引入测试', () => {
     let removeTree: any;
     let getParentTree: any;
     let includesTree: any;
-    let isEmptyTree: any;
+    let isEmptyTreeData: any;
 
     beforeEach(async () => {
       const esmPath = join(__dirname, '..', 'dist', 'tree-processor.esm.js');
@@ -174,7 +174,7 @@ describe('从 npm 包引入测试', () => {
       removeTree = module.removeTree;
       getParentTree = module.getParentTree;
       includesTree = module.includesTree;
-      isEmptyTree = module.isEmptyTree;
+      isEmptyTreeData = module.isEmptyTreeData;
     });
 
     it('mapTree 应该正常工作', () => {
@@ -245,10 +245,10 @@ describe('从 npm 包引入测试', () => {
       expect(includesTree(treeData, 999)).toBe(false);
     });
 
-    it('isEmptyTree 应该正常工作', () => {
-      if (!isEmptyTree) return;
-      expect(isEmptyTree(treeData)).toBe(false);
-      expect(isEmptyTree([])).toBe(true);
+    it('isEmptyTreeData 应该正常工作', () => {
+      if (!isEmptyTreeData) return;
+      expect(isEmptyTreeData(treeData)).toBe(false);
+      expect(isEmptyTreeData([])).toBe(true);
     });
   });
 

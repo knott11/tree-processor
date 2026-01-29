@@ -2,7 +2,7 @@
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **3-4 KB**（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）。
 
-目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTree、isSingleTree 和 isMultipleTrees。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTreeData、isEmptySingleTreeData、isSingleTreeData 和 isTreeData。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
 
 ## ✨ 特性
 
@@ -270,22 +270,75 @@ console.log(success) // true 表示删除成功，false 表示未找到节点
 console.log(treeData) // 删除后的树结构
 ```
 
-### isEmptyTree（检查树是否为空）
+### isEmptyTreeData（检查树结构数据是否为空）
 
 检查树结构数据是否为空。
 
 ```javascript
-const isEmpty = t.isEmptyTree(treeData)
+const isEmpty = t.isEmptyTreeData(treeData)
 
-console.log(isEmpty) // true 表示树为空，false 表示树不为空
+console.log(isEmpty) // true 表示树结构数据为空，false 表示树结构数据不为空
 ```
 
-### isSingleTree（判断数据是否是单个树结构）
+### isEmptySingleTreeData（检查单个树结构数据是否为空）
 
-判断数据是否是单个树结构（单个对象）。树结构必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
+检查单个树结构数据是否为空。如果数据不是有效的单个树结构数据、没有 children 字段，或者 children 是空数组，则视为空。如果有子节点（children 数组不为空），即使子节点本身是空的，树也不为空。
 
 ```javascript
-// 有效的单个树结构
+// 没有 children 字段，视为空
+const tree1 = { id: 1, name: 'node1' };
+const isEmpty1 = t.isEmptySingleTreeData(tree1)
+console.log(isEmpty1) // true
+
+// children 是空数组，视为空
+const tree2 = {
+  id: 1,
+  name: 'node1',
+  children: [],
+};
+const isEmpty2 = t.isEmptySingleTreeData(tree2)
+console.log(isEmpty2) // true
+
+// 有子节点，不为空
+const tree3 = {
+  id: 1,
+  name: 'node1',
+  children: [
+    { id: 2, name: 'node2' },
+  ],
+};
+const isEmpty3 = t.isEmptySingleTreeData(tree3)
+console.log(isEmpty3) // false
+
+// 有子节点，即使子节点本身是空的，树也不为空
+const tree4 = {
+  id: 1,
+  name: 'node1',
+  children: [
+    { id: 2, name: 'node2', children: [] },
+    { id: 3, name: 'node3' }, // 没有children字段
+  ],
+};
+const isEmpty4 = t.isEmptySingleTreeData(tree4)
+console.log(isEmpty4) // false（因为有子节点，即使子节点是空的）
+
+// 支持自定义字段名
+const customTree = {
+  nodeId: 1,
+  name: 'node1',
+  subNodes: [],
+};
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const isEmptyCustom = t.isEmptySingleTreeData(customTree, fieldNames)
+console.log(isEmptyCustom) // true
+```
+
+### isSingleTreeData（判断数据是否是单个树结构数据）
+
+判断数据是否是单个树结构数据（单个对象）。树结构数据必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
+
+```javascript
+// 有效的单个树结构数据
 const tree = {
   id: 1,
   name: 'node1',
@@ -295,16 +348,16 @@ const tree = {
   ],
 };
 
-const isValid = t.isSingleTree(tree)
+const isValid = t.isSingleTreeData(tree)
 console.log(isValid) // true
 
-// 无效的树结构
+// 无效的树结构数据
 const invalidTree = {
   id: 1,
   children: null, // children 不能是 null
 };
 
-const isInvalid = t.isSingleTree(invalidTree)
+const isInvalid = t.isSingleTreeData(invalidTree)
 console.log(isInvalid) // false
 
 // 支持自定义字段名
@@ -317,16 +370,16 @@ const customTree = {
 };
 
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isSingleTree(customTree, fieldNames)
+const isValidCustom = t.isSingleTreeData(customTree, fieldNames)
 console.log(isValidCustom) // true
 ```
 
-### isMultipleTrees（判断数据是否是多个树结构）
+### isTreeData（判断数据是否是树结构数据）
 
-判断数据是否是多个树结构（数组）。多个树结构必须是一个数组，数组中的每个元素都必须是有效的单个树结构。
+判断数据是否是树结构数据（数组）。树结构数据必须是一个数组，数组中的每个元素都必须是有效的单个树结构数据。
 
 ```javascript
-// 有效的多个树结构
+// 有效的树结构数据
 const forest = [
   {
     id: 1,
@@ -342,21 +395,21 @@ const forest = [
   },
 ];
 
-const isValid = t.isMultipleTrees(forest)
+const isValid = t.isTreeData(forest)
 console.log(isValid) // true
 
-// 空数组也是有效的多个树结构
+// 空数组也是有效的树结构数据
 const emptyForest = []
-const isEmptyValid = t.isMultipleTrees(emptyForest)
+const isEmptyValid = t.isTreeData(emptyForest)
 console.log(isEmptyValid) // true
 
-// 无效的多个树结构
+// 无效的树结构数据
 const invalidForest = [
   { id: 1, children: [{ id: 2 }] },
   'not a tree', // 数组元素必须是树结构
 ];
 
-const isInvalid = t.isMultipleTrees(invalidForest)
+const isInvalid = t.isTreeData(invalidForest)
 console.log(isInvalid) // false
 
 // 支持自定义字段名
@@ -371,7 +424,7 @@ const customForest = [
 ];
 
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isMultipleTrees(customForest, fieldNames)
+const isValidCustom = t.isTreeData(customForest, fieldNames)
 console.log(isValidCustom) // true
 ```
 
