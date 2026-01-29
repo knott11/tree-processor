@@ -85,10 +85,21 @@ describe('从 npm 包引入测试', () => {
         indexOfTree,
         atIndexOfTree,
         getParentTree,
-        nodeDepthMap,
+        getChildrenTree,
+        getSiblingsTree,
+        getNodeDepthMap,
+        getNodeDepth,
         dedupTree,
         removeTree,
         isEmptyTreeData,
+        isEmptySingleTreeData,
+        isSingleTreeData,
+        isTreeData,
+        isValidTreeNode,
+        isTreeNodeWithCircularCheck,
+        isSafeTreeDepth,
+        isLeafNode,
+        isRootNode,
       } = await import('../dist/tree-processor.esm.js');
 
       // 验证所有函数都存在
@@ -107,10 +118,21 @@ describe('从 npm 包引入测试', () => {
       expect(typeof indexOfTree).toBe('function');
       expect(typeof atIndexOfTree).toBe('function');
       expect(typeof getParentTree).toBe('function');
-      expect(typeof nodeDepthMap).toBe('function');
+      expect(typeof getChildrenTree).toBe('function');
+      expect(typeof getSiblingsTree).toBe('function');
+      expect(typeof getNodeDepthMap).toBe('function');
+      expect(typeof getNodeDepth).toBe('function');
       expect(typeof dedupTree).toBe('function');
       expect(typeof removeTree).toBe('function');
       expect(typeof isEmptyTreeData).toBe('function');
+      expect(typeof isEmptySingleTreeData).toBe('function');
+      expect(typeof isSingleTreeData).toBe('function');
+      expect(typeof isTreeData).toBe('function');
+      expect(typeof isValidTreeNode).toBe('function');
+      expect(typeof isTreeNodeWithCircularCheck).toBe('function');
+      expect(typeof isSafeTreeDepth).toBe('function');
+      expect(typeof isLeafNode).toBe('function');
+      expect(typeof isRootNode).toBe('function');
     });
 
     it('应该能够使用默认导出', async () => {

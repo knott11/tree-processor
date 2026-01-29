@@ -2,7 +2,7 @@
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **3-4 KB**（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）。
 
-目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、getParentTree、nodeDepthMap、dedupTree、removeTree、isEmptyTreeData、isEmptySingleTreeData、isSingleTreeData 和 isTreeData。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、和isSafeTreeDepth。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
 
 ## ✨ 特性
 
@@ -12,7 +12,7 @@
 - 🎯 **类似数组 API** - 提供 map、filter、find 等熟悉的数组方法
 - ⚙️ **自定义字段名** - 支持自定义 children 和 id 字段名
 - ✅ **零依赖** - 无外部依赖，开箱即用
-- 🧪 **完善的测试覆盖** - 包含 160 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景、npm 包导入等
+- 🧪 **完善的测试覆盖** - 包含 272 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景、npm 包导入等
 
 ## 📦 安装
 
@@ -54,6 +54,11 @@ const { mapTree, filterTree } = require('tree-processor')
 - ✅ 更好的代码提示和类型检查
 - ✅ 更清晰的依赖关系
 
+**关于类型导入：**
+- TypeScript 会自动从函数签名推断类型，**大多数情况下不需要显式引入类型**
+- 只有在需要显式声明变量类型时才需要引入类型（如 `const treeData: TreeData = [...]`）
+- 使用 `import type` 导入类型不会增加运行时体积（类型在编译时会被移除）
+
 ### 示例树结构数据
 
 以下示例数据将用于后续所有方法的演示：
@@ -84,12 +89,23 @@ const treeData = [
 
 ### mapTree（遍历树结构数据的方法）
 
-遍历树结构数据，对每个节点执行回调函数。
+遍历树结构数据，对每个节点执行回调函数，返回映射后的数组。
 
 ```javascript
-t.mapTree(treeData, (item) => {
-    console.log(item)
-})
+// 获取所有节点的名称
+const nodeNames = t.mapTree(treeData, (node) => node.name)
+console.log(nodeNames) // ['node1', 'node2', 'node4', 'node5', 'node3', 'node6']
+
+// 获取所有节点的ID
+const nodeIds = t.mapTree(treeData, (node) => node.id)
+console.log(nodeIds) // [1, 2, 4, 5, 3, 6]
+
+// 修改节点数据
+const modifiedNodes = t.mapTree(treeData, (node) => ({
+  ...node,
+  label: node.name
+}))
+console.log(modifiedNodes) // 返回包含 label 字段的新数组
 ```
 
 ### forEachTree（遍历树结构数据的方法，不返回值）
@@ -97,11 +113,23 @@ t.mapTree(treeData, (item) => {
 遍历树结构数据，对每个节点执行回调函数。与 mapTree 的区别是不返回值，性能更好，适合只需要遍历而不需要返回结果的场景。
 
 ```javascript
-t.forEachTree(treeData, (item) => {
-    console.log(item)
-    // 可以在这里修改节点
-    item.visited = true
+// 遍历所有节点并打印
+t.forEachTree(treeData, (node) => {
+    console.log(node)
 })
+
+// 修改节点属性
+t.forEachTree(treeData, (node) => {
+    node.visited = true
+    node.timestamp = Date.now()
+})
+
+// 统计节点数量
+let nodeCount = 0
+t.forEachTree(treeData, () => {
+    nodeCount++
+})
+console.log(nodeCount) // 节点总数
 ```
 
 ### filterTree（树结构数据的filter方法）
@@ -109,84 +137,117 @@ t.forEachTree(treeData, (item) => {
 过滤树结构数据，返回满足条件的节点。
 
 ```javascript
-const values = ['node1', 'node2', 'node3'];
-const result = t.filterTree(treeData, (item) => {
-    return values.includes(item.name)
+// 过滤出名称包含 'node' 的节点
+const filteredNodes = t.filterTree(treeData, (node) => {
+    return node.name.includes('node')
 })
+console.log(filteredNodes) // 返回满足条件的节点数组
 
-console.log(result)
+// 过滤出ID大于2的节点
+const nodesWithLargeId = t.filterTree(treeData, (node) => node.id > 2)
+console.log(nodesWithLargeId) // 返回ID大于2的节点数组
+
+// 过滤出没有子节点的节点（叶子节点）
+const leafNodes = t.filterTree(treeData, (node) => {
+    return !node.children || node.children.length === 0
+})
+console.log(leafNodes) // 返回所有叶子节点
 ```
 
 ### findTree（树结构数据的find方法）
 
-查找树结构数据中满足条件的第一个节点。
+查找树结构数据中满足条件的第一个节点。如果未找到，返回 null。
 
 ```javascript
-const result = t.findTree(treeData, (item) => {
-    return item.hasOwnProperty('children')
-})
+// 查找ID为2的节点
+const foundNode = t.findTree(treeData, (node) => node.id === 2)
+console.log(foundNode) // 返回找到的节点对象，未找到返回 null
 
-console.log(result)
+// 查找名称为 'node3' 的节点
+const node3 = t.findTree(treeData, (node) => node.name === 'node3')
+console.log(node3) // { id: 3, name: 'node3', children: [...] }
+
+// 查找不存在的节点
+const nodeNotFound = t.findTree(treeData, (node) => node.id === 999)
+console.log(nodeNotFound) // null
 ```
 
 ### pushTree（在指定节点下添加子节点到末尾）
 
-targetParentId 为目标节点的 id，newNode 为往该节点添加的数据。
+在指定节点下添加子节点到末尾。返回 true 表示添加成功，false 表示未找到目标节点。
 
 ```javascript
-t.pushTree(treeData, targetParentId, newNode);
+// 在ID为1的节点下添加新子节点
+const addSuccess = t.pushTree(treeData, 1, { id: 7, name: 'node7' })
+console.log(addSuccess) // true
+console.log(treeData) // 新节点已添加到 children 数组末尾
 
-console.log(treeData)
+// 尝试在不存在的节点下添加
+const addFailed = t.pushTree(treeData, 999, { id: 8, name: 'node8' })
+console.log(addFailed) // false，未找到目标节点
 ```
 
 ### unshiftTree（在指定节点下添加子节点到开头）
 
-targetParentId 为目标节点的 id，newNode 为往该节点添加的数据。
+在指定节点下添加子节点到开头。返回 true 表示添加成功，false 表示未找到目标节点。
 
 ```javascript
-t.unshiftTree(treeData, targetParentId, newNode);
-
-console.log(treeData)
+// 在ID为1的节点下添加新子节点到开头
+const unshiftSuccess = t.unshiftTree(treeData, 1, { id: 7, name: 'node7' })
+console.log(unshiftSuccess) // true
+console.log(treeData) // 新节点已添加到 children 数组开头
 ```
 
 ### popTree（删除指定节点下的最后一个子节点）
 
-rootId 为目标节点的 id，此方法可删除 rootId 下的最后一个子节点。
+删除指定节点下的最后一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
 
 ```javascript
-t.popTree(treeData, rootId);
+// 删除ID为1的节点下的最后一个子节点
+const removedNode = t.popTree(treeData, 1)
+console.log(removedNode) // 返回被删除的节点对象，或 false
 
-console.log(treeData)
+// 尝试删除不存在的节点下的子节点
+const popFailed = t.popTree(treeData, 999)
+console.log(popFailed) // false
 ```
 
 ### shiftTree（删除指定节点下的第一个子节点）
 
-rootId 为目标节点的 id，此方法可删除 rootId 下的第一个子节点。
+删除指定节点下的第一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
 
 ```javascript
-t.shiftTree(treeData, rootId);
-
-console.log(treeData)
+// 删除ID为1的节点下的第一个子节点
+const shiftedNode = t.shiftTree(treeData, 1)
+console.log(shiftedNode) // 返回被删除的节点对象，或 false
 ```
 
 ### someTree（树结构数据的some方法）
 
-检查树结构数据中是否存在满足条件的节点。
+检查树结构数据中是否存在满足条件的节点。只要有一个节点满足条件就返回 true。
 
 ```javascript
-const result = t.someTree(treeData, item => item.name === 'jack')
+// 检查是否存在名称为 'node2' 的节点
+const hasNode2 = t.someTree(treeData, node => node.name === 'node2')
+console.log(hasNode2) // true
 
-console.log(result)
+// 检查是否存在ID大于10的节点
+const hasLargeId = t.someTree(treeData, node => node.id > 10)
+console.log(hasLargeId) // false
 ```
 
 ### everyTree（树结构数据的every方法）
 
-检查树结构数据中是否所有节点都满足条件。
+检查树结构数据中是否所有节点都满足条件。只有所有节点都满足条件才返回 true。
 
 ```javascript
-const result = t.everyTree(treeData, item => item.age >= 18)
+// 检查所有节点的ID是否都大于0
+const allIdsPositive = t.everyTree(treeData, node => node.id > 0)
+console.log(allIdsPositive) // true
 
-console.log(result)
+// 检查所有节点是否都有 name 属性
+const allHaveName = t.everyTree(treeData, node => node.name)
+console.log(allHaveName) // 根据实际数据返回 true 或 false
 ```
 
 ### includesTree（检查树中是否包含指定节点）
@@ -194,69 +255,80 @@ console.log(result)
 检查树结构数据中是否包含指定ID的节点。
 
 ```javascript
-const hasNode = t.includesTree(treeData, targetId)
+const nodeId = 2
+const hasNode = t.includesTree(treeData, nodeId)
 
 console.log(hasNode) // true 表示包含该节点，false 表示不包含
 ```
 
 ### atTree（根据父节点ID和子节点索引获取节点）
 
-parentId 为指定父节点的 id，nodeIndex 为子节点的索引，可传负数，和数组的 at 方法一样。
+根据父节点ID和子节点索引获取节点。支持负数索引，和数组的 at 方法一样。未找到返回 null。
 
 ```javascript
-const result = t.atTree(treeData, parentId, nodeIndex)
+// 获取ID为1的节点的第一个子节点（索引0）
+const firstChildNode = t.atTree(treeData, 1, 0)
+console.log(firstChildNode) // 返回第一个子节点
 
-console.log(result)
+// 获取最后一个子节点（负数索引）
+const lastChildNode = t.atTree(treeData, 1, -1)
+console.log(lastChildNode) // 返回最后一个子节点
+
+// 索引超出范围返回 null
+const nodeNotFound = t.atTree(treeData, 1, 10)
+console.log(nodeNotFound) // null
 ```
 
 ### indexOfTree（返回从根节点到目标节点的索引路径）
 
-返回一个数组，值为从根节点开始到 targetId 所在节点的索引，返回值可以传入 atIndexOfTree 的第二个参数进行取值。
+返回一个数组，值为从根节点开始到 targetId 所在节点的索引路径。未找到返回 null。返回值可以传入 atIndexOfTree 的第二个参数进行取值。
 
 ```javascript
-const result = t.indexOfTree(treeData, targetId)
+// 获取ID为4的节点的索引路径
+const nodePath = t.indexOfTree(treeData, 4)
+console.log(nodePath) // [0, 0, 0] 表示根节点 -> 第一个子节点 -> 第一个子节点
 
-console.log(result)
+// 未找到节点返回 null
+const pathNotFound = t.indexOfTree(treeData, 999)
+console.log(pathNotFound) // null
+
+// 结合 atIndexOfTree 使用
+const indexPath = t.indexOfTree(treeData, 4)
+const nodeByPath = t.atIndexOfTree(treeData, indexPath)
+console.log(nodeByPath) // 获取到ID为4的节点
 ```
 
 ### atIndexOfTree（根据索引路径获取节点）
 
-传入节点数据的下标数组，返回节点数据。
+根据索引路径获取节点。路径无效或超出范围返回 null。
 
 ```javascript
-const result = t.atIndexOfTree(treeData, [0, 1, 0])
+// 根据索引路径获取节点
+const nodeByIndexPath = t.atIndexOfTree(treeData, [0, 1, 0])
+console.log(nodeByIndexPath) // 返回对应路径的节点对象
 
-console.log(result)
-```
+// 结合 indexOfTree 使用
+const targetPath = t.indexOfTree(treeData, 4)
+const targetNode = t.atIndexOfTree(treeData, targetPath)
+console.log(targetNode) // 获取到ID为4的节点
 
-### getParentTree（获取节点的父节点）
-
-获取指定节点的父节点。如果节点是根节点，返回 null。
-
-```javascript
-const parent = t.getParentTree(treeData, targetId)
-
-console.log(parent) // 返回父节点对象，如果未找到或节点是根节点则返回 null
-```
-
-### nodeDepthMap（返回节点ID到深度的映射）
-
-返回一个字典，键代表节点的 id，值代表该节点在数据的第几层。
-
-```javascript
-const result = t.nodeDepthMap(treeData)
-
-console.log(result)
+// 路径无效返回 null
+const invalidPath = t.atIndexOfTree(treeData, [999])
+console.log(invalidPath) // null
 ```
 
 ### dedupTree（树结构对象数组去重方法）
 
-树结构对象数组去重方法，第一个参数为需要去重的数据，第二个参数为以哪个键去重。
+树结构对象数组去重方法，根据指定的键去除重复节点。保留第一次出现的节点。
 
 ```javascript
-const result = t.dedupTree(treeData, 'id')
+// 根据 id 字段去重
+const uniqueTreeData = t.dedupTree(treeData, 'id')
+console.log(uniqueTreeData) // 返回去重后的树结构数据
 
-console.log(result)
+// 根据 name 字段去重
+const uniqueByNameTree = t.dedupTree(treeData, 'name')
+console.log(uniqueByNameTree) // 返回根据 name 去重后的数据
 ```
 
 ### removeTree（删除指定节点）
@@ -264,20 +336,281 @@ console.log(result)
 删除树结构数据中指定ID的节点，包括根节点和子节点。
 
 ```javascript
-const success = t.removeTree(treeData, targetId)
+const nodeIdToRemove = 2
+const removeSuccess = t.removeTree(treeData, nodeIdToRemove)
 
-console.log(success) // true 表示删除成功，false 表示未找到节点
+console.log(removeSuccess) // true 表示删除成功，false 表示未找到节点
 console.log(treeData) // 删除后的树结构
 ```
 
-### isEmptyTreeData（检查树结构数据是否为空）
+### getParentTree（获取节点的父节点）
 
-检查树结构数据是否为空。
+获取指定节点的父节点。如果节点是根节点或未找到，返回 null。
 
 ```javascript
-const isEmpty = t.isEmptyTreeData(treeData)
+// 获取ID为2的节点的父节点
+const parentNode = t.getParentTree(treeData, 2)
+console.log(parentNode) // 返回父节点对象 { id: 1, name: 'node1', ... }
 
-console.log(isEmpty) // true 表示树结构数据为空，false 表示树结构数据不为空
+// 根节点没有父节点，返回 null
+const rootParentNode = t.getParentTree(treeData, 1)
+console.log(rootParentNode) // null
+
+// 未找到节点返回 null
+const parentNotFound = t.getParentTree(treeData, 999)
+console.log(parentNotFound) // null
+```
+
+### getChildrenTree（获取节点的所有直接子节点）
+
+获取指定节点的所有直接子节点。如果未找到节点或没有子节点，返回空数组。
+
+```javascript
+// 获取ID为1的节点的所有子节点
+const children = t.getChildrenTree(treeData, 1)
+console.log(children) // 返回子节点数组 [{ id: 2, ... }, { id: 3, ... }]
+
+// 节点没有子节点，返回空数组
+const emptyChildren = t.getChildrenTree(treeData, 4)
+console.log(emptyChildren) // []
+
+// 未找到节点返回空数组
+const notFound = t.getChildrenTree(treeData, 999)
+console.log(notFound) // []
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'root',
+    subNodes: [
+      { nodeId: 2, name: 'child1' },
+      { nodeId: 3, name: 'child2' },
+    ],
+  },
+];
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const customChildren = t.getChildrenTree(customTree, 1, fieldNames)
+console.log(customChildren) // 返回子节点数组
+```
+
+### getSiblingsTree（获取节点的所有兄弟节点）
+
+获取指定节点的所有兄弟节点（包括自己）。如果未找到节点，返回空数组。根节点的兄弟节点是其他根节点。
+
+```javascript
+// 获取ID为2的节点的所有兄弟节点（包括自己）
+const siblings = t.getSiblingsTree(treeData, 2)
+console.log(siblings) // 返回兄弟节点数组 [{ id: 2, ... }, { id: 3, ... }]
+
+// 根节点的兄弟节点是其他根节点
+const multiRoot = [
+  { id: 1, children: [{ id: 2 }] },
+  { id: 3, children: [{ id: 4 }] },
+];
+const rootSiblings = t.getSiblingsTree(multiRoot, 1)
+console.log(rootSiblings) // 返回所有根节点 [{ id: 1, ... }, { id: 3, ... }]
+
+// 未找到节点返回空数组
+const notFound = t.getSiblingsTree(treeData, 999)
+console.log(notFound) // []
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'root',
+    subNodes: [
+      { nodeId: 2, name: 'child1' },
+      { nodeId: 3, name: 'child2' },
+      { nodeId: 4, name: 'child3' },
+    ],
+  },
+];
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const customSiblings = t.getSiblingsTree(customTree, 2, fieldNames)
+console.log(customSiblings) // 返回兄弟节点数组（包括自己）
+```
+
+### getNodeDepthMap（返回节点ID到深度的映射）
+
+返回一个字典，键代表节点的 id，值代表该节点在数据的第几层。深度从1开始，根节点深度为1。
+
+```javascript
+// 获取所有节点的深度映射
+const nodeDepthMap = t.getNodeDepthMap(treeData)
+console.log(nodeDepthMap) // { 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3 }
+
+// 获取特定节点的深度
+const node2Depth = nodeDepthMap[2]
+console.log(node2Depth) // 2
+
+// 空树返回空对象
+const emptyDepthMap = t.getNodeDepthMap([])
+console.log(emptyDepthMap) // {}
+```
+
+### getNodeDepth（获取单个节点的深度）
+
+获取指定节点的深度。深度从1开始，根节点深度为1。
+
+```javascript
+// 获取根节点的深度
+const rootDepth = t.getNodeDepth(treeData, 1)
+console.log(rootDepth) // 1
+
+// 获取子节点的深度
+const childDepth = t.getNodeDepth(treeData, 2)
+console.log(childDepth) // 2
+
+// 获取深层节点的深度
+const deepDepth = t.getNodeDepth(treeData, 4)
+console.log(deepDepth) // 3
+
+// 未找到节点返回 null
+const notFound = t.getNodeDepth(treeData, 999)
+console.log(notFound) // null
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'root',
+    subNodes: [
+      { nodeId: 2, name: 'child' },
+    ],
+  },
+];
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const depth = t.getNodeDepth(customTree, 2, fieldNames)
+console.log(depth) // 2
+```
+
+**与 getNodeDepthMap 的区别：**
+- `getNodeDepthMap` - 批量获取所有节点的深度（一次性计算所有节点）
+- `getNodeDepth` - 只获取单个节点的深度（只计算目标节点，效率更高）
+
+### isLeafNode（检查节点是否是叶子节点）
+
+检查节点是否是叶子节点（没有子节点）。轻量级方法，只检查节点本身，不遍历树。
+
+```javascript
+// 没有 children 字段的节点是叶子节点
+const leafNode1 = { id: 1, name: 'node1' };
+console.log(t.isLeafNode(leafNode1)) // true
+
+// children 为空数组的节点是叶子节点
+const leafNode2 = { id: 2, name: 'node2', children: [] };
+console.log(t.isLeafNode(leafNode2)) // true
+
+// 有子节点的节点不是叶子节点
+const parentNode = {
+  id: 3,
+  name: 'node3',
+  children: [{ id: 4, name: 'node4' }],
+};
+console.log(t.isLeafNode(parentNode)) // false
+
+// 在 filterTree 中使用（过滤出所有叶子节点）
+const leafNodes = t.filterTree(treeData, (node) => t.isLeafNode(node))
+console.log(leafNodes) // 返回所有叶子节点
+
+// 在 forEachTree 中使用
+t.forEachTree(treeData, (node) => {
+  if (t.isLeafNode(node)) {
+    console.log('叶子节点:', node.name)
+  }
+})
+
+// 支持自定义字段名
+const customNode = {
+  nodeId: 1,
+  name: 'node1',
+  subNodes: [],
+};
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+console.log(t.isLeafNode(customNode, fieldNames)) // true
+```
+
+**与现有方法的区别：**
+- `isLeafNode` - 只检查单个节点，轻量级（O(1)），适合在遍历时使用
+- `getChildrenTree` - 获取子节点数组，需要传入 tree 和 nodeId，需要查找节点（O(n)）
+
+### isRootNode（检查节点是否是根节点）
+
+检查节点是否是根节点（没有父节点）。根节点是树结构数据数组中的顶层节点。
+
+```javascript
+// 检查根节点
+const treeData = [
+  {
+    id: 1,
+    name: 'root1',
+    children: [{ id: 2, name: 'child1' }],
+  },
+];
+console.log(t.isRootNode(treeData, 1)) // true
+console.log(t.isRootNode(treeData, 2)) // false
+
+// 多个根节点的情况
+const multiRoot = [
+  { id: 1, name: 'root1' },
+  { id: 2, name: 'root2' },
+  { id: 3, name: 'root3' },
+];
+console.log(t.isRootNode(multiRoot, 1)) // true
+console.log(t.isRootNode(multiRoot, 2)) // true
+console.log(t.isRootNode(multiRoot, 3)) // true
+
+// 在遍历时使用
+t.forEachTree(treeData, (node) => {
+  if (t.isRootNode(treeData, node.id)) {
+    console.log('根节点:', node.name)
+  }
+})
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'root1',
+    subNodes: [{ nodeId: 2, name: 'child1' }],
+  },
+];
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+console.log(t.isRootNode(customTree, 1, fieldNames)) // true
+console.log(t.isRootNode(customTree, 2, fieldNames)) // false
+
+// 节点不存在时返回 false
+console.log(t.isRootNode(treeData, 999)) // false
+```
+
+**与现有方法的区别：**
+- `isRootNode` - 语义化方法，直接返回布尔值
+- `getParentTree` - 返回父节点对象，需要判断是否为 null
+- `getNodeDepth` - 返回深度，需要判断是否等于 1
+
+### isEmptyTreeData（检查树结构数据是否为空）
+
+检查树结构数据（数组）是否为空。空数组、null、undefined 都视为空。此函数支持 fieldNames 参数以保持 API 一致性，但该参数不生效（因为只检查数组是否为空，不访问 children 或 id 字段）。
+
+```javascript
+// 检查树结构数据是否为空
+const isEmptyTree = t.isEmptyTreeData(treeData)
+console.log(isEmptyTree) // false（有数据）
+
+// 空数组返回 true
+const isEmptyArray = t.isEmptyTreeData([])
+console.log(isEmptyArray) // true
+
+// null 或 undefined 返回 true
+const isNullTree = t.isEmptyTreeData(null)
+console.log(isNullTree) // true
+
+// 支持 fieldNames 参数（保持 API 一致性，但不生效）
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+const isEmptyWithFieldNames = t.isEmptyTreeData(treeData, fieldNames)
+console.log(isEmptyWithFieldNames) // false（结果与不传 fieldNames 相同）
 ```
 
 ### isEmptySingleTreeData（检查单个树结构数据是否为空）
@@ -333,6 +666,55 @@ const isEmptyCustom = t.isEmptySingleTreeData(customTree, fieldNames)
 console.log(isEmptyCustom) // true
 ```
 
+### isTreeData（判断数据是否是树结构数据）
+
+判断数据是否是树结构数据（数组）。树结构数据必须是一个数组，数组中的每个元素都必须是有效的单个树结构数据。
+
+```javascript
+// 有效的树结构数据（森林）
+const forest = [
+  {
+    id: 1,
+    name: 'node1',
+    children: [{ id: 2, name: 'node2' }],
+  },
+  {
+    id: 3,
+    name: 'node3',
+    children: [{ id: 4, name: 'node4' }],
+  },
+];
+console.log(t.isTreeData(forest)) // true
+
+// 空数组也是有效的树结构数据（空森林）
+console.log(t.isTreeData([])) // true
+
+// 单个对象不是树结构数据（应该用 isSingleTreeData）
+console.log(t.isTreeData({ id: 1 })) // false
+
+// 数组包含非树结构元素，返回 false
+const invalidForest = [
+  { id: 1, children: [{ id: 2 }] },
+  'not a tree', // 无效元素
+];
+console.log(t.isTreeData(invalidForest)) // false
+
+// null 或 undefined 不是有效的树结构数据
+console.log(t.isTreeData(null)) // false
+console.log(t.isTreeData(undefined)) // false
+
+// 支持自定义字段名
+const customForest = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [{ nodeId: 2, name: 'node2' }],
+  },
+];
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+console.log(t.isTreeData(customForest, fieldNames)) // true
+```
+
 ### isSingleTreeData（判断数据是否是单个树结构数据）
 
 判断数据是否是单个树结构数据（单个对象）。树结构数据必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
@@ -347,95 +729,178 @@ const tree = {
     { id: 3, name: 'node3' },
   ],
 };
-
 const isValid = t.isSingleTreeData(tree)
 console.log(isValid) // true
 
-// 无效的树结构数据
-const invalidTree = {
-  id: 1,
-  children: null, // children 不能是 null
-};
+// 没有 children 字段也是有效的（只有根节点）
+const singleNode = { id: 1, name: 'node1' }
+console.log(t.isSingleTreeData(singleNode)) // true
 
-const isInvalid = t.isSingleTreeData(invalidTree)
-console.log(isInvalid) // false
+// 数组不是单个树结构数据
+console.log(t.isSingleTreeData([])) // false
+
+// null 或 undefined 不是有效的树结构数据
+console.log(t.isSingleTreeData(null)) // false
+console.log(t.isSingleTreeData(undefined)) // false
+
+// children 不能是 null
+const invalidTree = { id: 1, children: null }
+console.log(t.isSingleTreeData(invalidTree)) // false
 
 // 支持自定义字段名
 const customTree = {
   nodeId: 1,
   name: 'node1',
-  subNodes: [
-    { nodeId: 2, name: 'node2' },
-  ],
+  subNodes: [{ nodeId: 2, name: 'node2' }],
 };
-
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isSingleTreeData(customTree, fieldNames)
-console.log(isValidCustom) // true
+console.log(t.isSingleTreeData(customTree, fieldNames)) // true
 ```
 
-### isTreeData（判断数据是否是树结构数据）
+### isValidTreeNode（检查单个节点是否是有效的树节点结构）
 
-判断数据是否是树结构数据（数组）。树结构数据必须是一个数组，数组中的每个元素都必须是有效的单个树结构数据。
+检查单个节点是否是有效的树节点结构（轻量级，不递归检查子节点）。只检查节点本身的结构，不检查子节点。
 
 ```javascript
-// 有效的树结构数据
-const forest = [
-  {
-    id: 1,
-    name: 'node1',
-    children: [
-      { id: 2, name: 'node2' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'node3',
-    children: [{ id: 4, name: 'node4' }],
-  },
-];
+// 有效的树节点（有 children 数组）
+const node1 = {
+  id: 1,
+  name: 'node1',
+  children: [{ id: 2 }],
+};
+console.log(t.isValidTreeNode(node1)) // true
 
-const isValid = t.isTreeData(forest)
-console.log(isValid) // true
+// 有效的树节点（没有 children 字段）
+const node2 = { id: 1, name: 'node1' };
+console.log(t.isValidTreeNode(node2)) // true
 
-// 空数组也是有效的树结构数据
-const emptyForest = []
-const isEmptyValid = t.isTreeData(emptyForest)
-console.log(isEmptyValid) // true
-
-// 无效的树结构数据
-const invalidForest = [
-  { id: 1, children: [{ id: 2 }] },
-  'not a tree', // 数组元素必须是树结构
-];
-
-const isInvalid = t.isTreeData(invalidForest)
-console.log(isInvalid) // false
+// 无效的树节点（children 不是数组）
+const invalidNode = {
+  id: 1,
+  children: 'not an array',
+};
+console.log(t.isValidTreeNode(invalidNode)) // false
 
 // 支持自定义字段名
-const customForest = [
+const customNode = {
+  nodeId: 1,
+  subNodes: [{ nodeId: 2 }],
+};
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+console.log(t.isValidTreeNode(customNode, fieldNames)) // true
+```
+
+**与 isSingleTreeData 的区别：**
+- `isValidTreeNode` - 只检查单个节点的基本结构，不递归检查子节点（轻量级）
+- `isSingleTreeData` - 递归检查整个树结构，确保所有子节点都是有效的树结构
+
+### isTreeNodeWithCircularCheck（检查节点结构并检测循环引用）
+
+检查节点是否是有效的树节点结构，并检测循环引用。使用 WeakSet 跟踪已访问的节点，如果发现循环引用则返回 false。
+
+```javascript
+// 有效的树节点（无循环引用）
+const validNode = {
+  id: 1,
+  children: [
+    { id: 2, children: [{ id: 3 }] },
+  ],
+};
+console.log(t.isTreeNodeWithCircularCheck(validNode)) // true
+
+// 检测循环引用
+const node1 = { id: 1, children: [] };
+const node2 = { id: 2, children: [] };
+node1.children.push(node2);
+node2.children.push(node1); // 循环引用
+console.log(t.isTreeNodeWithCircularCheck(node1)) // false
+
+// 检测自引用
+const selfRefNode = { id: 1, children: [] };
+selfRefNode.children.push(selfRefNode); // 自引用
+console.log(t.isTreeNodeWithCircularCheck(selfRefNode)) // false
+
+// 支持自定义字段名
+const customNode = {
+  nodeId: 1,
+  subNodes: [{ nodeId: 2 }],
+};
+const fieldNames = { children: 'subNodes', id: 'nodeId' };
+console.log(t.isTreeNodeWithCircularCheck(customNode, fieldNames)) // true
+```
+
+**使用场景：**
+- 在接收用户输入或外部数据时，检查是否有循环引用
+- 数据验证，防止无限递归
+- 调试时检查数据结构是否正确
+
+### isSafeTreeDepth（检查树深度是否安全）
+
+检查树结构数据的深度是否安全（防止递归爆栈）。如果树的深度超过 `maxDepth`，返回 false。
+
+```javascript
+// 深度安全的树
+const safeTree = [
   {
-    nodeId: 1,
-    name: 'node1',
-    subNodes: [
-      { nodeId: 2, name: 'node2' },
+    id: 1,
+    children: [
+      { id: 2, children: [{ id: 3 }] },
     ],
   },
 ];
+console.log(t.isSafeTreeDepth(safeTree, 10)) // true（深度为3，小于10）
 
+// 深度超过最大深度
+const deepTree = [
+  {
+    id: 1,
+    children: [
+      { id: 2, children: [{ id: 3 }] },
+    ],
+  },
+];
+console.log(t.isSafeTreeDepth(deepTree, 2)) // false（深度为3，超过2）
+
+// 空树总是安全的
+console.log(t.isSafeTreeDepth([], 10)) // true
+
+// 单层树
+const singleLayer = [{ id: 1 }, { id: 2 }];
+console.log(t.isSafeTreeDepth(singleLayer, 1)) // true
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    subNodes: [
+      { nodeId: 2, subNodes: [{ nodeId: 3 }] },
+    ],
+  },
+];
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const isValidCustom = t.isTreeData(customForest, fieldNames)
-console.log(isValidCustom) // true
+console.log(t.isSafeTreeDepth(customTree, 3, fieldNames)) // true
+console.log(t.isSafeTreeDepth(customTree, 2, fieldNames)) // false
 ```
+
+**使用场景：**
+- 在处理大型树之前，先检查深度是否安全
+- 防止递归调用栈溢出
+- 性能优化，避免处理过深的树结构
 
 ## 自定义字段名
 
 所有方法都支持自定义 children 和 id 的属性名，通过最后一个参数传入配置对象：
 
 ```javascript
+// 使用默认字段名
+const foundNode1 = t.findTree(treeData, (node) => node.id === 2)
+
+// 使用自定义字段名
 const fieldNames = { children: 'subNodes', id: 'nodeId' };
-const result = t.findTree(treeData, (item) => item.nodeId === 2, fieldNames);
+const foundNode2 = t.findTree(customTreeData, (node) => node.nodeId === 2, fieldNames);
 ```
+
+**注意：** 所有 30 个函数都支持 `fieldNames` 参数，保持 API 一致性。即使某些函数（如 `isEmptyTreeData`）中该参数不生效，也可以传入以保持代码风格一致。
 
 ## 测试
 

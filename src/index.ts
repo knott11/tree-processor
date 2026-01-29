@@ -437,7 +437,7 @@ export function atIndexOfTree(
  * @param fieldNames 自定义字段名配置
  * @returns 返回节点ID到深度的映射对象
  */
-export function nodeDepthMap(
+export function getNodeDepthMap(
   tree: TreeData,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): Record<string, number> {
@@ -455,6 +455,40 @@ export function nodeDepthMap(
   
   calculateDepth(tree);
   return depthMap;
+}
+
+/**
+ * 获取指定节点的深度
+ * @param tree 树结构数据
+ * @param targetId 目标节点ID
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回节点的深度（从1开始，根节点深度为1），未找到返回 null
+ */
+export function getNodeDepth(
+  tree: TreeData,
+  targetId: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number | null {
+  function findDepth(nodes: TreeData, depth: number = 1): number | null {
+    for (const node of nodes) {
+      // 如果当前节点就是目标节点，返回当前深度
+      if (node[fieldNames.id] === targetId) {
+        return depth;
+      }
+      
+      // 递归检查子节点，深度加1
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        const found = findDepth(children, depth + 1);
+        if (found !== null) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+  
+  return findDepth(tree);
 }
 
 /**
@@ -564,11 +598,15 @@ export function forEachTree(
 /**
  * 检查树结构数据是否为空
  * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置（此参数在此函数中不生效，仅为保持API一致性）
  * @returns 如果树结构数据为空返回 true，否则返回 false
  */
 export function isEmptyTreeData(
-  tree: TreeData
+  tree: TreeData,
+  fieldNames?: FieldNames
 ): boolean {
+  // 此函数只检查数组是否为空，不访问 children 或 id 字段
+  // fieldNames 参数仅为保持API一致性，实际不生效
   return !Array.isArray(tree) || tree.length === 0;
 }
 
@@ -603,6 +641,89 @@ export function isEmptySingleTreeData(
   // 如果有子节点，即使子节点本身是空的，树本身也不为空
   // 只有当树本身没有子节点时，才视为空
   return false;
+}
+
+/**
+ * 获取指定节点的所有直接子节点
+ * @param tree 树结构数据
+ * @param targetId 目标节点ID
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回子节点数组，如果未找到节点或没有子节点则返回空数组
+ */
+export function getChildrenTree(
+  tree: TreeData,
+  targetId: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeNode[] {
+  function findNode(nodes: TreeData): TreeNode | null {
+    for (const node of nodes) {
+      if (node[fieldNames.id] === targetId) {
+        return node;
+      }
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        const found = findNode(children);
+        if (found !== null) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  const targetNode = findNode(tree);
+  if (!targetNode) {
+    return [];
+  }
+
+  const children = targetNode[fieldNames.children];
+  return Array.isArray(children) ? children : [];
+}
+
+/**
+ * 获取指定节点的所有兄弟节点（包括自己）
+ * @param tree 树结构数据
+ * @param targetId 目标节点ID
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回兄弟节点数组，如果未找到节点则返回空数组
+ */
+export function getSiblingsTree(
+  tree: TreeData,
+  targetId: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeNode[] {
+  function findNodeAndParent(
+    nodes: TreeData,
+    parent: TreeNode | null = null
+  ): { node: TreeNode; parent: TreeNode | null } | null {
+    for (const node of nodes) {
+      if (node[fieldNames.id] === targetId) {
+        return { node, parent };
+      }
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        const found = findNodeAndParent(children, node);
+        if (found !== null) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  const result = findNodeAndParent(tree);
+  if (!result) {
+    return [];
+  }
+
+  // 如果是根节点，兄弟节点是其他根节点
+  if (result.parent === null) {
+    return tree;
+  }
+
+  // 如果不是根节点，从父节点的 children 中获取
+  const siblings = result.parent[fieldNames.children];
+  return Array.isArray(siblings) ? siblings : [];
 }
 
 /**
@@ -732,6 +853,158 @@ export function isTreeData(
 }
 
 /**
+ * 检查单个节点是否是有效的树节点结构（轻量级，不递归检查子节点）
+ * @param value 待检查的值
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果是有效的树节点结构返回 true，否则返回 false
+ */
+export function isValidTreeNode(
+  value: unknown,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): value is TreeNode {
+  // 必须是对象，不能是 null、undefined、数组或基本类型
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  
+  // 检查 children 字段
+  const children = (value as any)[fieldNames.children];
+  
+  // children 必须是 undefined 或数组
+  return children === undefined || Array.isArray(children);
+}
+
+/**
+ * 检查节点是否是有效的树节点结构，并检测循环引用
+ * @param value 待检查的值
+ * @param fieldNames 自定义字段名配置
+ * @param visited 已访问的节点集合（用于检测循环引用）
+ * @returns 如果是有效的树节点结构且无循环引用返回 true，否则返回 false
+ */
+export function isTreeNodeWithCircularCheck(
+  value: unknown,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES,
+  visited: WeakSet<object> = new WeakSet()
+): boolean {
+  // 必须是对象，不能是 null、undefined、数组或基本类型
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  
+  // 检查循环引用
+  if (visited.has(value as object)) {
+    return false; // 发现循环引用
+  }
+  
+  // 标记为已访问
+  visited.add(value as object);
+  
+  // 检查 children 字段
+  const children = (value as any)[fieldNames.children];
+  
+  // 如果 children 字段存在
+  if (children !== undefined) {
+    // 如果是 null，不是有效的树结构
+    if (children === null) {
+      return false;
+    }
+    
+    // 必须是数组
+    if (!Array.isArray(children)) {
+      return false;
+    }
+    
+    // 递归检查每个子节点
+    for (const child of children) {
+      if (!isTreeNodeWithCircularCheck(child, fieldNames, visited)) {
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * 检查树结构数据的深度是否安全（防止递归爆栈）
+ * @param tree 树结构数据
+ * @param maxDepth 最大允许深度
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果深度安全（不超过 maxDepth）返回 true，否则返回 false
+ */
+export function isSafeTreeDepth(
+  tree: TreeData,
+  maxDepth: number,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // maxDepth 必须大于 0
+  if (maxDepth <= 0) {
+    return false;
+  }
+  
+  function checkDepth(nodes: TreeData, currentDepth: number): boolean {
+    // 如果当前深度超过最大深度，不安全
+    if (currentDepth > maxDepth) {
+      return false;
+    }
+    
+    // 遍历所有节点
+    for (const node of nodes) {
+      const children = node[fieldNames.children];
+      
+      // 如果有子节点，递归检查
+      if (Array.isArray(children) && children.length > 0) {
+        if (!checkDepth(children, currentDepth + 1)) {
+          return false;
+        }
+      }
+    }
+    
+    return true;
+  }
+  
+  return checkDepth(tree, 1);
+}
+
+/**
+ * 检查节点是否是叶子节点（没有子节点）
+ * @param node 树节点
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果是叶子节点返回 true，否则返回 false
+ */
+export function isLeafNode(
+  node: TreeNode,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // 检查 children 字段
+  const children = node[fieldNames.children];
+  
+  // 如果没有 children 字段，或者 children 是空数组，则是叶子节点
+  return children === undefined || !Array.isArray(children) || children.length === 0;
+}
+
+/**
+ * 检查节点是否是根节点（没有父节点）
+ * @param tree 树结构数据
+ * @param nodeId 节点ID
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果是根节点返回 true，否则返回 false（节点不存在也返回 false）
+ */
+export function isRootNode(
+  tree: TreeData,
+  nodeId: any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): boolean {
+  // 先检查节点是否存在
+  if (!includesTree(tree, nodeId, fieldNames)) {
+    return false;
+  }
+  
+  // 根节点没有父节点，getParentTree 返回 null
+  return getParentTree(tree, nodeId, fieldNames) === null;
+}
+
+/**
  * 默认导出对象，包含所有方法
  */
 const treeProcessor = {
@@ -747,16 +1020,24 @@ const treeProcessor = {
   atTree,
   indexOfTree,
   atIndexOfTree,
-  nodeDepthMap,
+  getNodeDepthMap,
+  getNodeDepth,
   dedupTree,
   removeTree,
   forEachTree,
   isEmptyTreeData,
   isEmptySingleTreeData,
   getParentTree,
+  getChildrenTree,
+  getSiblingsTree,
   includesTree,
   isSingleTreeData,
   isTreeData,
+  isValidTreeNode,
+  isTreeNodeWithCircularCheck,
+  isSafeTreeDepth,
+  isLeafNode,
+  isRootNode,
 };
 
 export default treeProcessor;
