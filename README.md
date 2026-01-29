@@ -1,30 +1,104 @@
 # tree-processor
 
-一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **3-4 KB**（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）。
+<div align="center">
 
-目前已支持 mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、和isSafeTreeDepth。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
+![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
+![bundle size](https://img.shields.io/badge/bundle-6.6KB-blue?style=flat-square)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
+![test coverage](https://img.shields.io/badge/coverage-272%20tests-brightgreen?style=flat-square)
+
+一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **6-7 KB**（ESM: 6.39 KB，CJS: 6.64 KB，UMD: 6.68 KB）。
+
+
+</div>
+
+## 📋 目录
+
+- [特性](#-特性)
+  - [使用场景](#-使用场景)
+- [安装](#-安装)
+- [快速开始](#-快速开始)
+- [API 文档](#-api-文档)
+  - [遍历方法](#遍历方法)
+  - [查找方法](#查找方法)
+  - [修改方法](#修改方法)
+  - [判断方法](#判断方法)
+  - [工具方法](#工具方法)
+- [自定义字段名](#自定义字段名)
+- [测试](#测试)
+- [开发](#开发)
+- [技术栈](#技术栈)
+- [贡献](#-贡献)
+- [更新日志](#-更新日志)
+- [许可证](#-许可证)
+- [相关链接](#-相关链接)
 
 ## ✨ 特性
 
-- 🚀 **轻量级** - 每个格式约 3-4 KB（ESM: 3.25 KB，CJS: 3.42 KB，UMD: 3.56 KB）
-- 📦 **支持 Tree-shaking** - 按需导入，只打包使用的代码
-- 🔧 **TypeScript 支持** - 完整的类型定义和类型提示
-- 🎯 **类似数组 API** - 提供 map、filter、find 等熟悉的数组方法
-- ⚙️ **自定义字段名** - 支持自定义 children 和 id 字段名
-- ✅ **零依赖** - 无外部依赖，开箱即用
-- 🧪 **完善的测试覆盖** - 包含 272 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景、npm 包导入等
+- **轻量级** - 每个格式打包体积仅 6-7 KB（ESM: 6.39 KB，CJS: 6.64 KB，UMD: 6.68 KB），对项目体积影响极小
+- **支持 Tree-shaking** - 支持按需导入，只打包实际使用的代码，进一步减小打包体积
+- **完整的 TypeScript 支持** - 提供完整的类型定义和智能提示，提升开发体验
+- **灵活的自定义字段名** - 支持自定义 children 和 id 字段名，适配各种数据结构
+- **零依赖** - 无任何外部依赖，开箱即用，无需担心依赖冲突
+- **完善的测试覆盖** - 包含 272 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景等
+- **丰富的 API** - 提供 30+ 个方法，包含类似数组的 API（map、filter、find、some、every、includes、at、indexOf 等），以及树结构特有的操作（获取父子节点、深度计算、数据验证等），涵盖遍历、查找、修改、判断等完整场景
+
+**已支持的方法：** mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、isSafeTreeDepth。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+
+### 💡 使用场景
+
+- **导航系统** - 多级菜单、路由配置的展开、折叠、搜索、过滤
+- **文件系统** - 文件目录的遍历、查找、移动、删除
+- **权限系统** - 组织架构、角色权限的树形结构管理和验证
+- **框架开发** - 组件树、路由树等树形结构的构建和管理
+- **数据管理** - 分类管理、评论系统、树形选择器等数据操作
 
 ## 📦 安装
 
 ```bash
+npm install tree-processor
+# 或
 yarn add tree-processor
 # 或
-npm i tree-processor
+pnpm add tree-processor
 ```
 
-## 使用说明
+## 🚀 快速开始
 
-### 引入
+```javascript
+import { mapTree, findTree, filterTree } from 'tree-processor'
+
+const treeData = [
+  {
+    id: 1,
+    name: 'node1',
+    children: [
+      { id: 2, name: 'node2' },
+      { id: 3, name: 'node3' },
+    ],
+  },
+]
+
+// 获取所有节点名称
+const names = mapTree(treeData, (node) => node.name)
+console.log(names) // ['node1', 'node2', 'node3']
+
+// 查找节点
+const node = findTree(treeData, (n) => n.id === 2)
+console.log(node) // { id: 2, name: 'node2' }
+
+// 过滤节点
+const filtered = filterTree(treeData, (n) => n.id > 1)
+console.log(filtered) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+## 📖 API 文档
+
+### 引入方式
+
+#### 默认导入（推荐用于需要多个方法的场景）
 
 #### 默认导入（推荐用于需要多个方法的场景）
 
@@ -59,7 +133,7 @@ const { mapTree, filterTree } = require('tree-processor')
 - 只有在需要显式声明变量类型时才需要引入类型（如 `const treeData: TreeData = [...]`）
 - 使用 `import type` 导入类型不会增加运行时体积（类型在编译时会被移除）
 
-### 示例树结构数据
+### 示例数据
 
 以下示例数据将用于后续所有方法的演示：
 
@@ -87,7 +161,11 @@ const treeData = [
 ];
 ```
 
-### mapTree（遍历树结构数据的方法）
+---
+
+## 遍历方法
+
+### mapTree
 
 遍历树结构数据，对每个节点执行回调函数，返回映射后的数组。
 
@@ -108,7 +186,7 @@ const modifiedNodes = t.mapTree(treeData, (node) => ({
 console.log(modifiedNodes) // 返回包含 label 字段的新数组
 ```
 
-### forEachTree（遍历树结构数据的方法，不返回值）
+### forEachTree
 
 遍历树结构数据，对每个节点执行回调函数。与 mapTree 的区别是不返回值，性能更好，适合只需要遍历而不需要返回结果的场景。
 
@@ -132,7 +210,7 @@ t.forEachTree(treeData, () => {
 console.log(nodeCount) // 节点总数
 ```
 
-### filterTree（树结构数据的filter方法）
+### filterTree
 
 过滤树结构数据，返回满足条件的节点。
 
@@ -154,7 +232,11 @@ const leafNodes = t.filterTree(treeData, (node) => {
 console.log(leafNodes) // 返回所有叶子节点
 ```
 
-### findTree（树结构数据的find方法）
+---
+
+## 查找方法
+
+### findTree
 
 查找树结构数据中满足条件的第一个节点。如果未找到，返回 null。
 
@@ -172,85 +254,7 @@ const nodeNotFound = t.findTree(treeData, (node) => node.id === 999)
 console.log(nodeNotFound) // null
 ```
 
-### pushTree（在指定节点下添加子节点到末尾）
-
-在指定节点下添加子节点到末尾。返回 true 表示添加成功，false 表示未找到目标节点。
-
-```javascript
-// 在ID为1的节点下添加新子节点
-const addSuccess = t.pushTree(treeData, 1, { id: 7, name: 'node7' })
-console.log(addSuccess) // true
-console.log(treeData) // 新节点已添加到 children 数组末尾
-
-// 尝试在不存在的节点下添加
-const addFailed = t.pushTree(treeData, 999, { id: 8, name: 'node8' })
-console.log(addFailed) // false，未找到目标节点
-```
-
-### unshiftTree（在指定节点下添加子节点到开头）
-
-在指定节点下添加子节点到开头。返回 true 表示添加成功，false 表示未找到目标节点。
-
-```javascript
-// 在ID为1的节点下添加新子节点到开头
-const unshiftSuccess = t.unshiftTree(treeData, 1, { id: 7, name: 'node7' })
-console.log(unshiftSuccess) // true
-console.log(treeData) // 新节点已添加到 children 数组开头
-```
-
-### popTree（删除指定节点下的最后一个子节点）
-
-删除指定节点下的最后一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
-
-```javascript
-// 删除ID为1的节点下的最后一个子节点
-const removedNode = t.popTree(treeData, 1)
-console.log(removedNode) // 返回被删除的节点对象，或 false
-
-// 尝试删除不存在的节点下的子节点
-const popFailed = t.popTree(treeData, 999)
-console.log(popFailed) // false
-```
-
-### shiftTree（删除指定节点下的第一个子节点）
-
-删除指定节点下的第一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
-
-```javascript
-// 删除ID为1的节点下的第一个子节点
-const shiftedNode = t.shiftTree(treeData, 1)
-console.log(shiftedNode) // 返回被删除的节点对象，或 false
-```
-
-### someTree（树结构数据的some方法）
-
-检查树结构数据中是否存在满足条件的节点。只要有一个节点满足条件就返回 true。
-
-```javascript
-// 检查是否存在名称为 'node2' 的节点
-const hasNode2 = t.someTree(treeData, node => node.name === 'node2')
-console.log(hasNode2) // true
-
-// 检查是否存在ID大于10的节点
-const hasLargeId = t.someTree(treeData, node => node.id > 10)
-console.log(hasLargeId) // false
-```
-
-### everyTree（树结构数据的every方法）
-
-检查树结构数据中是否所有节点都满足条件。只有所有节点都满足条件才返回 true。
-
-```javascript
-// 检查所有节点的ID是否都大于0
-const allIdsPositive = t.everyTree(treeData, node => node.id > 0)
-console.log(allIdsPositive) // true
-
-// 检查所有节点是否都有 name 属性
-const allHaveName = t.everyTree(treeData, node => node.name)
-console.log(allHaveName) // 根据实际数据返回 true 或 false
-```
-
-### includesTree（检查树中是否包含指定节点）
+### includesTree
 
 检查树结构数据中是否包含指定ID的节点。
 
@@ -261,7 +265,7 @@ const hasNode = t.includesTree(treeData, nodeId)
 console.log(hasNode) // true 表示包含该节点，false 表示不包含
 ```
 
-### atTree（根据父节点ID和子节点索引获取节点）
+### atTree
 
 根据父节点ID和子节点索引获取节点。支持负数索引，和数组的 at 方法一样。未找到返回 null。
 
@@ -279,7 +283,7 @@ const nodeNotFound = t.atTree(treeData, 1, 10)
 console.log(nodeNotFound) // null
 ```
 
-### indexOfTree（返回从根节点到目标节点的索引路径）
+### indexOfTree
 
 返回一个数组，值为从根节点开始到 targetId 所在节点的索引路径。未找到返回 null。返回值可以传入 atIndexOfTree 的第二个参数进行取值。
 
@@ -298,7 +302,7 @@ const nodeByPath = t.atIndexOfTree(treeData, indexPath)
 console.log(nodeByPath) // 获取到ID为4的节点
 ```
 
-### atIndexOfTree（根据索引路径获取节点）
+### atIndexOfTree
 
 根据索引路径获取节点。路径无效或超出范围返回 null。
 
@@ -317,7 +321,73 @@ const invalidPath = t.atIndexOfTree(treeData, [999])
 console.log(invalidPath) // null
 ```
 
-### dedupTree（树结构对象数组去重方法）
+---
+
+## 修改方法
+
+### pushTree
+
+在指定节点下添加子节点到末尾。返回 true 表示添加成功，false 表示未找到目标节点。
+
+```javascript
+// 在ID为1的节点下添加新子节点
+const addSuccess = t.pushTree(treeData, 1, { id: 7, name: 'node7' })
+console.log(addSuccess) // true
+console.log(treeData) // 新节点已添加到 children 数组末尾
+
+// 尝试在不存在的节点下添加
+const addFailed = t.pushTree(treeData, 999, { id: 8, name: 'node8' })
+console.log(addFailed) // false，未找到目标节点
+```
+
+### unshiftTree
+
+在指定节点下添加子节点到开头。返回 true 表示添加成功，false 表示未找到目标节点。
+
+```javascript
+// 在ID为1的节点下添加新子节点到开头
+const unshiftSuccess = t.unshiftTree(treeData, 1, { id: 7, name: 'node7' })
+console.log(unshiftSuccess) // true
+console.log(treeData) // 新节点已添加到 children 数组开头
+```
+
+### popTree
+
+删除指定节点下的最后一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
+
+```javascript
+// 删除ID为1的节点下的最后一个子节点
+const removedNode = t.popTree(treeData, 1)
+console.log(removedNode) // 返回被删除的节点对象，或 false
+
+// 尝试删除不存在的节点下的子节点
+const popFailed = t.popTree(treeData, 999)
+console.log(popFailed) // false
+```
+
+### shiftTree
+
+删除指定节点下的第一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
+
+```javascript
+// 删除ID为1的节点下的第一个子节点
+const shiftedNode = t.shiftTree(treeData, 1)
+console.log(shiftedNode) // 返回被删除的节点对象，或 false
+```
+
+### removeTree
+
+删除树结构数据中指定ID的节点，包括根节点和子节点。
+
+```javascript
+const nodeIdToRemove = 2
+const removeSuccess = t.removeTree(treeData, nodeIdToRemove)
+
+console.log(removeSuccess) // true 表示删除成功，false 表示未找到节点
+console.log(treeData) // 删除后的树结构
+```
+
+### dedupTree
 
 树结构对象数组去重方法，根据指定的键去除重复节点。保留第一次出现的节点。
 
@@ -331,19 +401,39 @@ const uniqueByNameTree = t.dedupTree(treeData, 'name')
 console.log(uniqueByNameTree) // 返回根据 name 去重后的数据
 ```
 
-### removeTree（删除指定节点）
+---
 
-删除树结构数据中指定ID的节点，包括根节点和子节点。
+## 判断方法
+
+### someTree
+
+检查树结构数据中是否存在满足条件的节点。只要有一个节点满足条件就返回 true。
 
 ```javascript
-const nodeIdToRemove = 2
-const removeSuccess = t.removeTree(treeData, nodeIdToRemove)
+// 检查是否存在名称为 'node2' 的节点
+const hasNode2 = t.someTree(treeData, node => node.name === 'node2')
+console.log(hasNode2) // true
 
-console.log(removeSuccess) // true 表示删除成功，false 表示未找到节点
-console.log(treeData) // 删除后的树结构
+// 检查是否存在ID大于10的节点
+const hasLargeId = t.someTree(treeData, node => node.id > 10)
+console.log(hasLargeId) // false
 ```
 
-### getParentTree（获取节点的父节点）
+### everyTree
+
+检查树结构数据中是否所有节点都满足条件。只有所有节点都满足条件才返回 true。
+
+```javascript
+// 检查所有节点的ID是否都大于0
+const allIdsPositive = t.everyTree(treeData, node => node.id > 0)
+console.log(allIdsPositive) // true
+
+// 检查所有节点是否都有 name 属性
+const allHaveName = t.everyTree(treeData, node => node.name)
+console.log(allHaveName) // 根据实际数据返回 true 或 false
+```
+
+### getParentTree
 
 获取指定节点的父节点。如果节点是根节点或未找到，返回 null。
 
@@ -361,7 +451,7 @@ const parentNotFound = t.getParentTree(treeData, 999)
 console.log(parentNotFound) // null
 ```
 
-### getChildrenTree（获取节点的所有直接子节点）
+### getChildrenTree
 
 获取指定节点的所有直接子节点。如果未找到节点或没有子节点，返回空数组。
 
@@ -394,7 +484,7 @@ const customChildren = t.getChildrenTree(customTree, 1, fieldNames)
 console.log(customChildren) // 返回子节点数组
 ```
 
-### getSiblingsTree（获取节点的所有兄弟节点）
+### getSiblingsTree
 
 获取指定节点的所有兄弟节点（包括自己）。如果未找到节点，返回空数组。根节点的兄弟节点是其他根节点。
 
@@ -432,7 +522,11 @@ const customSiblings = t.getSiblingsTree(customTree, 2, fieldNames)
 console.log(customSiblings) // 返回兄弟节点数组（包括自己）
 ```
 
-### getNodeDepthMap（返回节点ID到深度的映射）
+---
+
+## 工具方法
+
+### getNodeDepthMap
 
 返回一个字典，键代表节点的 id，值代表该节点在数据的第几层。深度从1开始，根节点深度为1。
 
@@ -450,7 +544,7 @@ const emptyDepthMap = t.getNodeDepthMap([])
 console.log(emptyDepthMap) // {}
 ```
 
-### getNodeDepth（获取单个节点的深度）
+### getNodeDepth
 
 获取指定节点的深度。深度从1开始，根节点深度为1。
 
@@ -490,7 +584,7 @@ console.log(depth) // 2
 - `getNodeDepthMap` - 批量获取所有节点的深度（一次性计算所有节点）
 - `getNodeDepth` - 只获取单个节点的深度（只计算目标节点，效率更高）
 
-### isLeafNode（检查节点是否是叶子节点）
+### isLeafNode
 
 检查节点是否是叶子节点（没有子节点）。轻量级方法，只检查节点本身，不遍历树。
 
@@ -536,7 +630,7 @@ console.log(t.isLeafNode(customNode, fieldNames)) // true
 - `isLeafNode` - 只检查单个节点，轻量级（O(1)），适合在遍历时使用
 - `getChildrenTree` - 获取子节点数组，需要传入 tree 和 nodeId，需要查找节点（O(n)）
 
-### isRootNode（检查节点是否是根节点）
+### isRootNode
 
 检查节点是否是根节点（没有父节点）。根节点是树结构数据数组中的顶层节点。
 
@@ -590,7 +684,7 @@ console.log(t.isRootNode(treeData, 999)) // false
 - `getParentTree` - 返回父节点对象，需要判断是否为 null
 - `getNodeDepth` - 返回深度，需要判断是否等于 1
 
-### isEmptyTreeData（检查树结构数据是否为空）
+### isEmptyTreeData
 
 检查树结构数据（数组）是否为空。空数组、null、undefined 都视为空。此函数支持 fieldNames 参数以保持 API 一致性，但该参数不生效（因为只检查数组是否为空，不访问 children 或 id 字段）。
 
@@ -613,7 +707,7 @@ const isEmptyWithFieldNames = t.isEmptyTreeData(treeData, fieldNames)
 console.log(isEmptyWithFieldNames) // false（结果与不传 fieldNames 相同）
 ```
 
-### isEmptySingleTreeData（检查单个树结构数据是否为空）
+### isEmptySingleTreeData
 
 检查单个树结构数据是否为空。如果数据不是有效的单个树结构数据、没有 children 字段，或者 children 是空数组，则视为空。如果有子节点（children 数组不为空），即使子节点本身是空的，树也不为空。
 
@@ -666,7 +760,7 @@ const isEmptyCustom = t.isEmptySingleTreeData(customTree, fieldNames)
 console.log(isEmptyCustom) // true
 ```
 
-### isTreeData（判断数据是否是树结构数据）
+### isTreeData
 
 判断数据是否是树结构数据（数组）。树结构数据必须是一个数组，数组中的每个元素都必须是有效的单个树结构数据。
 
@@ -715,7 +809,7 @@ const fieldNames = { children: 'subNodes', id: 'nodeId' };
 console.log(t.isTreeData(customForest, fieldNames)) // true
 ```
 
-### isSingleTreeData（判断数据是否是单个树结构数据）
+### isSingleTreeData
 
 判断数据是否是单个树结构数据（单个对象）。树结构数据必须是一个对象（不能是数组、null、undefined 或基本类型），如果存在 children 字段，必须是数组类型，并且会递归检查所有子节点。
 
@@ -757,7 +851,7 @@ const fieldNames = { children: 'subNodes', id: 'nodeId' };
 console.log(t.isSingleTreeData(customTree, fieldNames)) // true
 ```
 
-### isValidTreeNode（检查单个节点是否是有效的树节点结构）
+### isValidTreeNode
 
 检查单个节点是否是有效的树节点结构（轻量级，不递归检查子节点）。只检查节点本身的结构，不检查子节点。
 
@@ -794,7 +888,7 @@ console.log(t.isValidTreeNode(customNode, fieldNames)) // true
 - `isValidTreeNode` - 只检查单个节点的基本结构，不递归检查子节点（轻量级）
 - `isSingleTreeData` - 递归检查整个树结构，确保所有子节点都是有效的树结构
 
-### isTreeNodeWithCircularCheck（检查节点结构并检测循环引用）
+### isTreeNodeWithCircularCheck
 
 检查节点是否是有效的树节点结构，并检测循环引用。使用 WeakSet 跟踪已访问的节点，如果发现循环引用则返回 false。
 
@@ -834,7 +928,7 @@ console.log(t.isTreeNodeWithCircularCheck(customNode, fieldNames)) // true
 - 数据验证，防止无限递归
 - 调试时检查数据结构是否正确
 
-### isSafeTreeDepth（检查树深度是否安全）
+### isSafeTreeDepth
 
 检查树结构数据的深度是否安全（防止递归爆栈）。如果树的深度超过 `maxDepth`，返回 false。
 
@@ -937,6 +1031,36 @@ npm run build
 - **Terser** - JavaScript 压缩工具
 - **TypeScript** - 类型支持
 
-## License
+## 🤝 贡献
 
-MIT
+欢迎贡献！如果你有任何想法或发现问题，请：
+
+1. Fork 本仓库
+2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交你的更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启一个 Pull Request
+
+## 📝 更新日志
+
+查看 [CHANGELOG.md](./CHANGELOG.md) 了解详细的版本更新记录。
+
+## 📄 许可证
+
+本项目采用 [MIT](./LICENSE) 许可证。
+
+## 🔗 相关链接
+
+- [GitHub 仓库](https://github.com/knott11/tree-processor)
+- [npm 包](https://www.npmjs.com/package/tree-processor)
+- [问题反馈](https://github.com/knott11/tree-processor/issues)
+
+---
+
+<div align="center">
+
+如果这个项目对你有帮助，请给它一个 ⭐️
+
+Made with ❤️ by [knott11](https://github.com/knott11)
+
+</div>
