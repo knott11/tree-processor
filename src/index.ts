@@ -416,10 +416,12 @@ export function atIndexOfTree(
     
     const node = current[index];
     
+    // 如果是最后一个索引，直接返回节点
     if (i === path.length - 1) {
       return node;
     }
     
+    // 获取子节点继续遍历
     const children = node[fieldNames.children];
     if (!Array.isArray(children)) {
       return null;
@@ -428,6 +430,10 @@ export function atIndexOfTree(
     current = children;
   }
   
+  // 这行代码理论上不可达，因为：
+  // - 如果 path.length === 0，在 405 行已返回
+  // - 如果 path.length > 0，在循环中当 i === path.length - 1 时会返回 node
+  // 但为了类型安全和防御性编程，保留此返回语句作为兜底
   return null;
 }
 

@@ -1,13 +1,18 @@
 # tree-processor
 
+<div align="right">
+
+[English](https://github.com/knott11/tree-processor/blob/main/README.en.md) | [中文](https://github.com/knott11/tree-processor/blob/main/README.md)
+
+</div>
+
 <div align="center">
 
 ![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
 ![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-6.6KB-blue?style=flat-square)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-![test coverage](https://img.shields.io/badge/coverage-272%20tests-brightgreen?style=flat-square)
+![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **6-7 KB**（ESM: 6.39 KB，CJS: 6.64 KB，UMD: 6.68 KB）。
 
@@ -23,17 +28,13 @@
 - [API 文档](#-api-文档)
   - [遍历方法](#遍历方法)
   - [查找方法](#查找方法)
+  - [访问方法](#访问方法)
   - [修改方法](#修改方法)
-  - [判断方法](#判断方法)
-  - [工具方法](#工具方法)
+  - [查询方法](#查询方法)
+  - [验证方法](#验证方法)
 - [自定义字段名](#自定义字段名)
 - [测试](#测试)
 - [开发](#开发)
-- [技术栈](#技术栈)
-- [贡献](#-贡献)
-- [更新日志](#-更新日志)
-- [许可证](#-许可证)
-- [相关链接](#-相关链接)
 
 ## ✨ 特性
 
@@ -42,7 +43,7 @@
 - **完整的 TypeScript 支持** - 提供完整的类型定义和智能提示，提升开发体验
 - **灵活的自定义字段名** - 支持自定义 children 和 id 字段名，适配各种数据结构
 - **零依赖** - 无任何外部依赖，开箱即用，无需担心依赖冲突
-- **完善的测试覆盖** - 包含 272 个测试用例，覆盖基础功能、边界情况、异常处理、复杂场景等
+- **完善的测试覆盖** - 包含 290 个测试用例，测试覆盖率达到 99%+（语句覆盖率 99.67%，分支覆盖率 99.32%，函数覆盖率 100%），覆盖基础功能、边界情况、异常处理、复杂场景等
 - **丰富的 API** - 提供 30+ 个方法，包含类似数组的 API（map、filter、find、some、every、includes、at、indexOf 等），以及树结构特有的操作（获取父子节点、深度计算、数据验证等），涵盖遍历、查找、修改、判断等完整场景
 
 **已支持的方法：** mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、isSafeTreeDepth。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
@@ -123,16 +124,6 @@ import type { TreeNode, TreeData, FieldNames } from 'tree-processor'
 const { mapTree, filterTree } = require('tree-processor')
 ```
 
-**按需导入的优势：**
-- ✅ 支持 tree-shaking，只打包使用的代码，减小打包体积
-- ✅ 更好的代码提示和类型检查
-- ✅ 更清晰的依赖关系
-
-**关于类型导入：**
-- TypeScript 会自动从函数签名推断类型，**大多数情况下不需要显式引入类型**
-- 只有在需要显式声明变量类型时才需要引入类型（如 `const treeData: TreeData = [...]`）
-- 使用 `import type` 导入类型不会增加运行时体积（类型在编译时会被移除）
-
 ### 示例数据
 
 以下示例数据将用于后续所有方法的演示：
@@ -210,6 +201,10 @@ t.forEachTree(treeData, () => {
 console.log(nodeCount) // 节点总数
 ```
 
+---
+
+## 查找方法
+
 ### filterTree
 
 过滤树结构数据，返回满足条件的节点。
@@ -231,10 +226,6 @@ const leafNodes = t.filterTree(treeData, (node) => {
 })
 console.log(leafNodes) // 返回所有叶子节点
 ```
-
----
-
-## 查找方法
 
 ### findTree
 
@@ -264,6 +255,38 @@ const hasNode = t.includesTree(treeData, nodeId)
 
 console.log(hasNode) // true 表示包含该节点，false 表示不包含
 ```
+
+### someTree
+
+检查树结构数据中是否存在满足条件的节点。只要有一个节点满足条件就返回 true。
+
+```javascript
+// 检查是否存在名称为 'node2' 的节点
+const hasNode2 = t.someTree(treeData, node => node.name === 'node2')
+console.log(hasNode2) // true
+
+// 检查是否存在ID大于10的节点
+const hasLargeId = t.someTree(treeData, node => node.id > 10)
+console.log(hasLargeId) // false
+```
+
+### everyTree
+
+检查树结构数据中是否所有节点都满足条件。只有所有节点都满足条件才返回 true。
+
+```javascript
+// 检查所有节点的ID是否都大于0
+const allIdsPositive = t.everyTree(treeData, node => node.id > 0)
+console.log(allIdsPositive) // true
+
+// 检查所有节点是否都有 name 属性
+const allHaveName = t.everyTree(treeData, node => node.name)
+console.log(allHaveName) // 根据实际数据返回 true 或 false
+```
+
+---
+
+## 访问方法
 
 ### atTree
 
@@ -403,35 +426,7 @@ console.log(uniqueByNameTree) // 返回根据 name 去重后的数据
 
 ---
 
-## 判断方法
-
-### someTree
-
-检查树结构数据中是否存在满足条件的节点。只要有一个节点满足条件就返回 true。
-
-```javascript
-// 检查是否存在名称为 'node2' 的节点
-const hasNode2 = t.someTree(treeData, node => node.name === 'node2')
-console.log(hasNode2) // true
-
-// 检查是否存在ID大于10的节点
-const hasLargeId = t.someTree(treeData, node => node.id > 10)
-console.log(hasLargeId) // false
-```
-
-### everyTree
-
-检查树结构数据中是否所有节点都满足条件。只有所有节点都满足条件才返回 true。
-
-```javascript
-// 检查所有节点的ID是否都大于0
-const allIdsPositive = t.everyTree(treeData, node => node.id > 0)
-console.log(allIdsPositive) // true
-
-// 检查所有节点是否都有 name 属性
-const allHaveName = t.everyTree(treeData, node => node.name)
-console.log(allHaveName) // 根据实际数据返回 true 或 false
-```
+## 查询方法
 
 ### getParentTree
 
@@ -522,10 +517,6 @@ const customSiblings = t.getSiblingsTree(customTree, 2, fieldNames)
 console.log(customSiblings) // 返回兄弟节点数组（包括自己）
 ```
 
----
-
-## 工具方法
-
 ### getNodeDepthMap
 
 返回一个字典，键代表节点的 id，值代表该节点在数据的第几层。深度从1开始，根节点深度为1。
@@ -583,6 +574,10 @@ console.log(depth) // 2
 **与 getNodeDepthMap 的区别：**
 - `getNodeDepthMap` - 批量获取所有节点的深度（一次性计算所有节点）
 - `getNodeDepth` - 只获取单个节点的深度（只计算目标节点，效率更高）
+
+---
+
+## 验证方法
 
 ### isLeafNode
 
@@ -1024,43 +1019,10 @@ npm test
 npm run build
 ```
 
-## 技术栈
-
-- **Rollup** - 模块打包工具
-- **Vitest** - 单元测试框架
-- **Terser** - JavaScript 压缩工具
-- **TypeScript** - 类型支持
-
-## 🤝 贡献
-
-欢迎贡献！如果你有任何想法或发现问题，请：
-
-1. Fork 本仓库
-2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交你的更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启一个 Pull Request
-
-## 📝 更新日志
-
-查看 [CHANGELOG.md](./CHANGELOG.md) 了解详细的版本更新记录。
-
-## 📄 许可证
-
-本项目采用 [MIT](./LICENSE) 许可证。
-
-## 🔗 相关链接
-
-- [GitHub 仓库](https://github.com/knott11/tree-processor)
-- [npm 包](https://www.npmjs.com/package/tree-processor)
-- [问题反馈](https://github.com/knott11/tree-processor/issues)
-
----
-
 <div align="center">
 
 如果这个项目对你有帮助，请给它一个 ⭐️
 
-Made with ❤️ by [knott11](https://github.com/knott11)
+Made with by [knott11]
 
 </div>

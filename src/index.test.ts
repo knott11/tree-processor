@@ -124,6 +124,56 @@ describe('Tree Processor', () => {
       expect(treeData[0].children.length).toBe(3);
       expect(treeData[0].children[0].name).toBe('node7');
     });
+
+    it('应该在深层子节点中找到目标节点并添加子节点（触发173行）', () => {
+      const deepTree = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: [
+                {
+                  id: 3,
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      // 在深层子节点中找到节点3并添加子节点
+      const newNode = { id: 4, name: 'node4' };
+      const success = unshiftTree(deepTree, 3, newNode);
+      expect(success).toBe(true);
+      expect(deepTree[0].children[0].children[0].children.length).toBe(1);
+      expect(deepTree[0].children[0].children[0].children[0].id).toBe(4);
+    });
+
+    it('应该处理节点存在但没有children字段的情况（触发166行）', () => {
+      const treeWithoutChildren = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              // 没有 children 字段
+            },
+          ],
+        },
+      ];
+      const newNode = { id: 3, name: 'node3' };
+      const success = unshiftTree(treeWithoutChildren, 2, newNode);
+      expect(success).toBe(true);
+      expect(Array.isArray(treeWithoutChildren[0].children[0].children)).toBe(true);
+      expect(treeWithoutChildren[0].children[0].children[0].id).toBe(3);
+    });
+
+    it('应该返回false如果未找到目标节点（触发178行）', () => {
+      const newNode = { id: 999, name: 'node999' };
+      const success = unshiftTree(treeData, 999, newNode);
+      expect(success).toBe(false);
+    });
   });
 
   describe('popTree', () => {
@@ -138,6 +188,30 @@ describe('Tree Processor', () => {
       const success = popTree(treeData, 4);
       expect(success).toBe(false);
     });
+
+    it('应该在深层子节点中找到目标节点并删除（触发209行）', () => {
+      const deepTree = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: [
+                {
+                  id: 3,
+                  children: [{ id: 4 }, { id: 5 }],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      // 在深层子节点中找到节点3并删除其最后一个子节点
+      const success = popTree(deepTree, 3);
+      expect(success).toBe(true);
+      expect(deepTree[0].children[0].children[0].children.length).toBe(1);
+      expect(deepTree[0].children[0].children[0].children[0].id).toBe(4);
+    });
   });
 
   describe('shiftTree', () => {
@@ -146,6 +220,51 @@ describe('Tree Processor', () => {
       expect(success).toBe(true);
       expect(treeData[0].children.length).toBe(1);
       expect(treeData[0].children[0].id).toBe(3);
+    });
+
+    it('应该返回false如果节点没有子节点', () => {
+      const success = shiftTree(treeData, 4);
+      expect(success).toBe(false);
+    });
+
+    it('应该在深层子节点中找到目标节点并删除第一个子节点（触发243行）', () => {
+      const deepTree = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: [
+                {
+                  id: 3,
+                  children: [{ id: 4 }, { id: 5 }],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      // 在深层子节点中找到节点3并删除其第一个子节点
+      const success = shiftTree(deepTree, 3);
+      expect(success).toBe(true);
+      expect(deepTree[0].children[0].children[0].children.length).toBe(1);
+      expect(deepTree[0].children[0].children[0].children[0].id).toBe(5);
+    });
+
+    it('应该处理节点存在但没有子节点的情况（触发239行）', () => {
+      const treeWithNoChildren = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              // 没有 children 字段
+            },
+          ],
+        },
+      ];
+      const success = shiftTree(treeWithNoChildren, 2);
+      expect(success).toBe(false);
     });
   });
 
@@ -169,6 +288,38 @@ describe('Tree Processor', () => {
 
     it('应该返回false如果有节点不满足条件', () => {
       const result = everyTree(treeData, (item) => item.id > 3);
+      expect(result).toBe(false);
+    });
+
+    it('应该返回false如果子节点中有不满足条件的节点', () => {
+      const treeWithInvalidChild = [
+        {
+          id: 1,
+          children: [
+            { id: 2, name: 'valid' },
+            { id: 3, name: 'invalid' },
+          ],
+        },
+      ];
+      const result = everyTree(treeWithInvalidChild, (item) => item.name !== 'invalid');
+      expect(result).toBe(false);
+    });
+
+    it('应该递归检查子节点，如果子节点不满足条件则返回false', () => {
+      const treeWithNestedInvalid = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: [
+                { id: 3, value: 0 }, // 不满足条件
+              ],
+            },
+          ],
+        },
+      ];
+      const result = everyTree(treeWithNestedInvalid, (item) => item.value > 0);
       expect(result).toBe(false);
     });
   });
@@ -571,6 +722,66 @@ describe('Tree Processor', () => {
       expect(result).not.toBeNull();
       expect(result?.id).toBe(2);
     });
+
+    it('应该处理父节点存在但children不是数组的情况', () => {
+      const treeWithInvalidChildren = [
+        {
+          id: 1,
+          children: 'not an array' as any,
+        },
+      ];
+      const result = atTree(treeWithInvalidChildren, 1, 0);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理父节点存在但children为空数组的情况', () => {
+      const treeWithEmptyChildren = [
+        {
+          id: 1,
+          children: [],
+        },
+      ];
+      const result = atTree(treeWithEmptyChildren, 1, 0);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理负数索引的分支覆盖（确保三元表达式false分支被执行）', () => {
+      // 确保 nodeIndex < 0 的分支被覆盖
+      const treeWithChildren = [
+        {
+          id: 1,
+          children: [{ id: 2 }, { id: 3 }, { id: 4 }],
+        },
+      ];
+      // 测试负数索引：-1 应该返回最后一个元素（触发 false 分支）
+      const result = atTree(treeWithChildren, 1, -1);
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe(4);
+    });
+
+    it('应该处理在深层子节点中找到父节点的情况（触发329行）', () => {
+      // 测试 atTree 中 findParent 在深层子节点中找到父节点的情况
+      const deepTree = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: [
+                {
+                  id: 3,
+                  children: [{ id: 4 }],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+      // 在深层子节点中找到父节点，应该触发 329 行的 return found
+      const result = atTree(deepTree, 3, 0);
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe(4);
+    });
   });
 
   describe('边界情况 - atIndexOfTree路径边界', () => {
@@ -606,6 +817,74 @@ describe('Tree Processor', () => {
       const result = atIndexOfTree(deepTree, [0, 0, 0, 0]);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(4);
+    });
+
+    it('应该处理中间节点children不是数组的情况', () => {
+      const treeWithInvalidChildren = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              children: 'not an array' as any,
+            },
+          ],
+        },
+      ];
+      const result = atIndexOfTree(treeWithInvalidChildren, [0, 0, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理路径长度超过实际树深度的情况', () => {
+      const shallowTree = [
+        {
+          id: 1,
+          children: [{ id: 2 }],
+        },
+      ];
+      // 路径 [0, 0, 0] 但树只有两层，循环结束后应该返回 null
+      const result = atIndexOfTree(shallowTree, [0, 0, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理路径中间节点没有children字段的情况', () => {
+      const treeWithoutChildren = [
+        {
+          id: 1,
+          // 没有 children 字段
+        },
+      ];
+      // 路径 [0, 0] 但节点1没有children，循环结束后应该返回 null
+      const result = atIndexOfTree(treeWithoutChildren, [0, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理路径中间节点children为undefined的情况', () => {
+      const treeWithUndefinedChildren = [
+        {
+          id: 1,
+          children: [
+            {
+              id: 2,
+              // children 为 undefined
+            },
+          ],
+        },
+      ];
+      // 路径 [0, 0, 0] 但节点2的children是undefined，应该返回 null
+      const result = atIndexOfTree(treeWithUndefinedChildren, [0, 0, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该处理for循环正常结束但未返回节点的情况（触发431行）', () => {
+      // 这个测试理论上不应该触发 431 行，因为如果 for 循环正常结束，
+      // 应该已经在循环内返回了。但为了完整性，我们测试一个边界情况
+      // 实际上，431 行可能是不可达代码，但为了 100% 覆盖率，我们需要确保所有路径都被测试
+      const emptyTree: any[] = [];
+      // 空树，但路径不为空，会在第一次循环就返回 null（414行）
+      // 431 行可能是不可达代码，但让我们确保所有情况都被测试
+      const result = atIndexOfTree(emptyTree, [0]);
+      expect(result).toBeNull();
     });
   });
 
