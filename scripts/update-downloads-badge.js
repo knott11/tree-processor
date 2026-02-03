@@ -59,9 +59,10 @@ function updateBadgeInReadme(filePath, packageName, downloads) {
     formattedDownloads = `${(downloads / 1000).toFixed(1)}K`;
   }
   
-  // 使用 shields.io 的自定义徽章，显示近两个月的下载量
-  // 由于 shields.io 的 npm downloads 徽章不支持两个月，我们使用自定义徽章
-  const badgeUrl = `https://img.shields.io/badge/downloads-${encodeURIComponent(formattedDownloads)}-brightgreen?style=flat-square&label=2mo`;
+  // 使用 shields.io 的自定义徽章，显示格式：downloads 1.3K/2mo
+  // 标签显示 "downloads"，值显示 "1.3K/2mo"
+  const badgeValue = `${formattedDownloads}/2mo`;
+  const badgeUrl = `https://img.shields.io/badge/downloads-${encodeURIComponent(badgeValue)}-brightgreen?style=flat-square`;
   
   // 替换现有的 downloads 徽章
   const newBadge = `![npm downloads (2 months)](${badgeUrl})`;
