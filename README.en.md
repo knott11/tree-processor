@@ -8,7 +8,7 @@
 
 <div align="center">
 
-![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
+![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
 ![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.3K%2F2mo-brightgreen?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
