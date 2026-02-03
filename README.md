@@ -9,7 +9,7 @@
 <div align="center">
 
 ![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
-![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.3K-brightgreen?style=flat-square&label=2mo)
 ![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
@@ -1297,30 +1297,6 @@ npm test
 # 构建项目（先删除 dist 目录，然后重新打包）
 npm run build
 ```
-
-## CI/CD
-
-### 本地运行 CI 流程
-
-你可以通过一个命令执行完整的 CI 流程：
-
-```bash
-npm run ci
-```
-
-这个命令会依次执行：
-1. `npm test -- --run` - 自动打包并运行所有测试（源码 + 打包文件，656 个测试用例）
-2. `npm run test:coverage` - 生成覆盖率报告
-3. `npm run update:badge` - 更新覆盖率徽章
-
-### GitHub Actions
-
-项目已配置 GitHub Actions，每次推送代码到主分支时会自动运行 `npm run ci`，并：
-
-1. 运行完整的 CI 流程（构建、测试、更新徽章）
-2. 自动提交更新的徽章到仓库
-
-徽章会根据最新的测试覆盖率自动更新，无需手动操作。
 
 <div align="center">
 

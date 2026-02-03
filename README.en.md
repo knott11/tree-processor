@@ -9,7 +9,7 @@
 <div align="center">
 
 ![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
-![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.3K-brightgreen?style=flat-square&label=2mo)
 ![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
@@ -1297,30 +1297,6 @@ npm test
 # Build project (delete dist directory first, then rebuild)
 npm run build
 ```
-
-## CI/CD
-
-### Run CI Pipeline Locally
-
-You can run the complete CI pipeline with a single command:
-
-```bash
-npm run ci
-```
-
-This command will execute in sequence:
-1. `npm test -- --run` - Automatically build and run all tests (source + bundled files, 656 test cases)
-2. `npm run test:coverage` - Generate coverage report
-3. `npm run update:badge` - Update the coverage badge
-
-### GitHub Actions
-
-The project is configured with GitHub Actions. Every time code is pushed to the main branch, it will automatically run `npm run ci` and:
-
-1. Execute the complete CI pipeline (build, test, update badge)
-2. Automatically commit the updated badge to the repository
-
-The badge will automatically update based on the latest test coverage, no manual operation required.
 
 <div align="center">
 

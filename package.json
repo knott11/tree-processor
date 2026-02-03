@@ -26,11 +26,12 @@
     "test:dist": "npm run build && vitest run src/index-dist-only.test.ts",
     "test:coverage": "vitest --coverage",
     "update:badge": "node scripts/update-coverage-badge.js",
+    "update:downloads": "node scripts/update-downloads-badge.js",
     "size:dist": "node scripts/check-size.js",
     "size:src": "node scripts/check-src-size.js",
     "size:all": "npm run size:src && npm run size:dist",
     "prepublishOnly": "npm run build",
-    "ci": "npm test -- --run && npm run test:coverage && npm run update:badge"
+    "ci": "npm test -- --run && npm run test:coverage && npm run update:badge && npm run update:downloads"
   },
   "keywords": [
     "tree",
