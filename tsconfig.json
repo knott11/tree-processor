@@ -16,7 +16,10 @@
     "isolatedModules": true,
     "noEmit": false,
     "importHelpers": true,
-    "removeComments": true
+    "removeComments": true,
+    // 性能优化：增量编译
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

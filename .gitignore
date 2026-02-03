@@ -3,5 +3,12 @@ dist/
 *.log
 .DS_Store
 coverage/
+coverage.json
 .idea/
 .vscode/
+# TypeScript 增量编译缓存
+*.tsbuildinfo
+# Vitest 缓存
+node_modules/.vitest/
+# Rollup 构建缓存
+.rollup.cache/

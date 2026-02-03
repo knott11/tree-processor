@@ -1011,6 +1011,274 @@ export function isRootNode(
 }
 
 /**
+ * 将树结构数据转换为扁平数组
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回扁平化后的节点数组（不包含 children 字段）
+ */
+export function convertToArrayTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeNode[] {
+  const result: TreeNode[] = [];
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      // 创建新对象，排除 children 字段
+      const { [fieldNames.children]: _, ...nodeWithoutChildren } = node;
+      result.push(nodeWithoutChildren);
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return result;
+}
+
+/**
+ * 将任何数据结构转换为树结构数据
+ * 支持：扁平数组（带 parentId）、Map、Record、对象等
+ * @param data 待转换的数据，可以是数组、Map、Record 或对象
+ * @param options 配置选项
+ * @param options.rootParentId 根节点的 parentId 值，默认为 null（仅数组格式需要）
+ * @param options.parentIdField 父节点ID字段名，默认为 'parentId'（仅数组格式需要）
+ * @param options.fieldNames 自定义字段名配置
+ * @returns 返回转换后的树结构数据
+ */
+export function convertBackTree(
+  data: TreeNode[] | Map<any, TreeNode> | Record<string | number, TreeNode> | TreeNode,
+  options: {
+    rootParentId?: any;
+    parentIdField?: string;
+    fieldNames?: FieldNames;
+  } = {}
+): TreeData {
+  const {
+    rootParentId = null,
+    parentIdField = 'parentId',
+    fieldNames = DEFAULT_FIELD_NAMES,
+  } = options;
+  
+  // 处理数组格式（扁平数组，需要 parentId）
+  if (Array.isArray(data)) {
+    if (data.length === 0) {
+      return [];
+    }
+    
+    // 创建节点映射表，key 为节点ID，value 为节点对象
+    const nodeMap = new Map<any, TreeNode>();
+    
+    // 第一遍遍历：创建所有节点，并添加 children 字段
+    for (const item of data) {
+      const nodeId = item[fieldNames.id];
+      if (nodeId === undefined || nodeId === null) {
+        continue; // 跳过没有 id 的节点
+      }
+      
+      // 创建节点副本，确保有 children 字段
+      const node: TreeNode = {
+        ...item,
+        [fieldNames.children]: [],
+      };
+      nodeMap.set(nodeId, node);
+    }
+    
+    // 第二遍遍历：建立父子关系
+    const rootNodes: TreeData = [];
+    
+    for (const item of data) {
+      const nodeId = item[fieldNames.id];
+      const parentId = item[parentIdField];
+      
+      if (nodeId === undefined || nodeId === null) {
+        continue;
+      }
+      
+      const node = nodeMap.get(nodeId);
+      if (!node) {
+        continue;
+      }
+      
+      // 判断是否为根节点
+      if (parentId === rootParentId || parentId === undefined || parentId === null) {
+        rootNodes.push(node);
+      } else {
+        // 查找父节点
+        const parent = nodeMap.get(parentId);
+        if (parent) {
+          const children = parent[fieldNames.children];
+          if (Array.isArray(children)) {
+            children.push(node);
+          } else {
+            parent[fieldNames.children] = [node];
+          }
+        } else {
+          // 如果找不到父节点，将其作为根节点处理
+          rootNodes.push(node);
+        }
+      }
+    }
+    
+    return rootNodes;
+  }
+  
+  // 处理 Map 格式
+  if (data instanceof Map) {
+    if (data.size === 0) {
+      return [];
+    }
+    
+    // Map 转数组，然后按数组方式处理
+    const array: TreeNode[] = [];
+    data.forEach((value, key) => {
+      array.push({ ...value, [fieldNames.id]: key });
+    });
+    
+    return convertBackTree(array, options);
+  }
+  
+  // 处理 Record/对象格式（普通对象，不是 Map）
+  if (data && typeof data === 'object' && !Array.isArray(data) && !(data instanceof Map)) {
+    // 先检查是否是单个树节点对象（有 children 字段且是数组）
+    const children = (data as TreeNode)[fieldNames.children];
+    if (Array.isArray(children)) {
+      // 是树节点对象，直接返回
+      return [data as TreeNode];
+    }
+    
+    // 检查是否是 Record 格式（键值对对象，所有值都是对象）
+    const keys = Object.keys(data);
+    if (keys.length > 0) {
+      // 检查是否所有值都是对象（可能是 Record）
+      let isRecord = true;
+      for (const key of keys) {
+        const value = (data as Record<string | number, TreeNode>)[key];
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+          isRecord = false;
+          break;
+        }
+      }
+      
+      if (isRecord) {
+        // 作为 Record 处理
+        const array: TreeNode[] = [];
+        for (const key of keys) {
+          const value = (data as Record<string | number, TreeNode>)[key];
+          array.push({ ...value, [fieldNames.id]: key });
+        }
+        
+        if (array.length > 0) {
+          return convertBackTree(array, options);
+        }
+      }
+    }
+    
+    // 如果都不是，尝试作为单个根节点
+    return [{ ...data, [fieldNames.children]: [] }];
+  }
+  
+  // 其他情况返回空数组
+  return [];
+}
+
+/**
+ * 将树结构数据转换为 Map，key 为节点 ID，value 为节点对象
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回 Map 对象，key 为节点 ID，value 为节点对象（不包含 children 字段）
+ */
+export function convertToMapTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): Map<any, TreeNode> {
+  const result = new Map<any, TreeNode>();
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      const nodeId = node[fieldNames.id];
+      if (nodeId !== undefined && nodeId !== null) {
+        // 创建新对象，排除 children 字段
+        const { [fieldNames.children]: _, ...nodeWithoutChildren } = node;
+        result.set(nodeId, nodeWithoutChildren);
+      }
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return result;
+}
+
+/**
+ * 将树结构数据转换为层级数组（二维数组），按深度分组
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回二维数组，外层数组按深度索引，内层数组包含该深度的所有节点
+ */
+export function convertToLevelArrayTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeNode[][] {
+  const result: TreeNode[][] = [];
+  
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  function traverse(nodes: TreeData, depth: number = 0): void {
+    // 确保该深度级别的数组存在
+    if (!result[depth]) {
+      result[depth] = [];
+    }
+    
+    for (const node of nodes) {
+      // 创建新对象，排除 children 字段
+      const { [fieldNames.children]: _, ...nodeWithoutChildren } = node;
+      result[depth].push(nodeWithoutChildren);
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children, depth + 1);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return result;
+}
+
+/**
+ * 将单根树结构数据转换为对象
+ * @param tree 树结构数据（应该只有一个根节点）
+ * @param fieldNames 自定义字段名配置
+ * @returns 如果只有一个根节点，返回该节点对象；否则返回 null
+ */
+export function convertToObjectTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeNode | null {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return null;
+  }
+  
+  // 如果只有一个根节点，返回该节点
+  if (tree.length === 1) {
+    return tree[0];
+  }
+  
+  // 多个根节点，返回 null
+  return null;
+}
+
+/**
  * 默认导出对象，包含所有方法
  */
 const treeProcessor = {
@@ -1044,6 +1312,11 @@ const treeProcessor = {
   isSafeTreeDepth,
   isLeafNode,
   isRootNode,
+  convertToArrayTree,
+  convertBackTree,
+  convertToMapTree,
+  convertToLevelArrayTree,
+  convertToObjectTree,
 };
 
 export default treeProcessor;

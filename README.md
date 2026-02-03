@@ -10,11 +10,11 @@
 
 ![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
 ![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
-![bundle size](https://img.shields.io/badge/bundle-6.6KB-blue?style=flat-square)
+![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
 
-一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **6-7 KB**（ESM: 6.39 KB，CJS: 6.64 KB，UMD: 6.68 KB）。
+一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **8.2-8.5 KB**（ESM: 8.24 KB，CJS: 8.51 KB，UMD: 8.52 KB）。
 
 
 </div>
@@ -30,6 +30,7 @@
   - [查找方法](#查找方法)
   - [访问方法](#访问方法)
   - [修改方法](#修改方法)
+  - [转换方法](#转换方法)
   - [查询方法](#查询方法)
   - [验证方法](#验证方法)
 - [自定义字段名](#自定义字段名)
@@ -38,15 +39,15 @@
 
 ## ✨ 特性
 
-- **轻量级** - 每个格式打包体积仅 6-7 KB（ESM: 6.39 KB，CJS: 6.64 KB，UMD: 6.68 KB），对项目体积影响极小
+- **轻量级** - 每个格式打包体积仅 8.2-8.5 KB（ESM: 8.24 KB，CJS: 8.51 KB，UMD: 8.52 KB），对项目体积影响极小
 - **支持 Tree-shaking** - 支持按需导入，只打包实际使用的代码，进一步减小打包体积
 - **完整的 TypeScript 支持** - 提供完整的类型定义和智能提示，提升开发体验
 - **灵活的自定义字段名** - 支持自定义 children 和 id 字段名，适配各种数据结构
 - **零依赖** - 无任何外部依赖，开箱即用，无需担心依赖冲突
-- **完善的测试覆盖** - 包含 290 个测试用例，测试覆盖率达到 99%+（语句覆盖率 99.67%，分支覆盖率 99.32%，函数覆盖率 100%），覆盖基础功能、边界情况、异常处理、复杂场景等
-- **丰富的 API** - 提供 30+ 个方法，包含类似数组的 API（map、filter、find、some、every、includes、at、indexOf 等），以及树结构特有的操作（获取父子节点、深度计算、数据验证等），涵盖遍历、查找、修改、判断等完整场景
+- **完善的测试覆盖** - 包含 328 个测试用例，测试覆盖率达到 99%+（语句覆盖率 99%，分支覆盖率 98.41%，函数覆盖率 100%，行覆盖率 98.99%），覆盖基础功能、边界情况、异常处理、复杂场景等
+- **丰富的 API** - 提供 32+ 个方法，包含类似数组的 API（map、filter、find、some、every等），以及树结构特有的操作（获取父子节点、深度计算、数据验证、格式转换等），涵盖遍历、查找、修改、转换、判断等完整场景
 
-**已支持的方法：** mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、isSafeTreeDepth。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+**已支持的方法：** mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、isSafeTreeDepth、convertToArrayTree、convertBackTree、convertToMapTree、convertToLevelArrayTree、convertToObjectTree。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
 
 ### 💡 使用场景
 
@@ -98,8 +99,6 @@ console.log(filtered) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
 ## 📖 API 文档
 
 ### 引入方式
-
-#### 默认导入（推荐用于需要多个方法的场景）
 
 #### 默认导入（推荐用于需要多个方法的场景）
 
@@ -422,6 +421,280 @@ console.log(uniqueTreeData) // 返回去重后的树结构数据
 // 根据 name 字段去重
 const uniqueByNameTree = t.dedupTree(treeData, 'name')
 console.log(uniqueByNameTree) // 返回根据 name 去重后的数据
+```
+
+---
+
+## 转换方法
+
+### convertToArrayTree
+
+将树结构数据扁平化为数组。返回的数组中每个节点都不包含 `children` 字段。
+
+```javascript
+// 将树结构扁平化为数组
+const array = t.convertToArrayTree(treeData)
+console.log(array) 
+// [
+//   { id: 1, name: 'node1' },
+//   { id: 2, name: 'node2' },
+//   { id: 4, name: 'node4' },
+//   { id: 5, name: 'node5' },
+//   { id: 3, name: 'node3' },
+//   { id: 6, name: 'node6' }
+// ]
+
+// 注意：返回的节点不包含 children 字段
+array.forEach(node => {
+  console.log(node.children) // undefined
+})
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customArray = t.convertToArrayTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customArray) // 扁平化后的数组，不包含 subNodes 字段
+```
+
+### convertToMapTree
+
+将树结构数据转换为 Map，key 为节点 ID，value 为节点对象（不包含 children 字段）。适用于需要快速通过 ID 查找节点的场景。
+
+```javascript
+// 将树结构转换为 Map
+const map = t.convertToMapTree(treeData)
+console.log(map instanceof Map) // true
+console.log(map.size) // 6
+
+// 通过 ID 快速查找节点
+const node = map.get(2)
+console.log(node) // { id: 2, name: 'node2' }
+console.log(node.children) // undefined（不包含 children 字段）
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customMap = t.convertToMapTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customMap.get(1)) // { nodeId: 1, name: 'node1' }
+```
+
+### convertToLevelArrayTree
+
+将树结构数据转换为层级数组（二维数组），按深度分组。外层数组按深度索引，内层数组包含该深度的所有节点。
+
+```javascript
+// 将树结构转换为层级数组
+const levelArray = t.convertToLevelArrayTree(treeData)
+console.log(levelArray)
+// [
+//   [{ id: 1, name: 'node1' }],           // 第 0 层
+//   [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }],  // 第 1 层
+//   [{ id: 4, name: 'node4' }, { id: 5, name: 'node5' }, { id: 6, name: 'node6' }]  // 第 2 层
+// ]
+
+// 遍历每一层
+levelArray.forEach((level, depth) => {
+  console.log(`深度 ${depth}:`, level)
+})
+
+// 注意：返回的节点不包含 children 字段
+levelArray[0][0].children // undefined
+
+// 支持自定义字段名
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customLevelArray = t.convertToLevelArrayTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customLevelArray) // 按层级分组的数组
+```
+
+### convertToObjectTree
+
+将单根树结构数据转换为对象。如果树只有一个根节点，返回该节点对象；否则返回 `null`。
+
+```javascript
+// 单根树转换为对象
+const singleRootTree = [
+  {
+    id: 1,
+    name: 'node1',
+    value: 100,
+    children: [
+      { id: 2, name: 'node2' }
+    ]
+  }
+]
+const rootNode = t.convertToObjectTree(singleRootTree)
+console.log(rootNode) 
+// {
+//   id: 1,
+//   name: 'node1',
+//   value: 100,
+//   children: [{ id: 2, name: 'node2' }]
+// }
+
+// 多个根节点返回 null
+const multiRootTree = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+const result = t.convertToObjectTree(multiRootTree)
+console.log(result) // null
+
+// 空树返回 null
+const emptyTree = []
+const emptyResult = t.convertToObjectTree(emptyTree)
+console.log(emptyResult) // null
+```
+
+### convertBackTree
+
+将各种数据结构转换为树结构数据。支持数组、Map、Record（对象）等格式。数组中的每个元素需要包含 `id` 和 `parentId` 字段。
+
+```javascript
+// 将扁平数组转换为树结构
+const array = [
+  { id: 1, name: 'node1', parentId: null },
+  { id: 2, name: 'node2', parentId: 1 },
+  { id: 3, name: 'node3', parentId: 1 },
+  { id: 4, name: 'node4', parentId: 2 },
+  { id: 5, name: 'node5', parentId: 2 },
+  { id: 6, name: 'node6', parentId: 3 }
+]
+const tree = t.convertBackTree(array)
+console.log(tree)
+// [
+//   {
+//     id: 1,
+//     name: 'node1',
+//     children: [
+//       {
+//         id: 2,
+//         name: 'node2',
+//         children: [
+//           { id: 4, name: 'node4', children: [] },
+//           { id: 5, name: 'node5', children: [] }
+//         ]
+//       },
+//       {
+//         id: 3,
+//         name: 'node3',
+//         children: [
+//           { id: 6, name: 'node6', children: [] }
+//         ]
+//       }
+//     ]
+//   }
+// ]
+
+// 自定义根节点的 parentId 值
+const arrayWithZero = [
+  { id: 1, name: 'node1', parentId: 0 },
+  { id: 2, name: 'node2', parentId: 1 }
+]
+const treeWithZero = t.convertBackTree(arrayWithZero, { rootParentId: 0 })
+console.log(treeWithZero) // 正确转换
+
+// 自定义 parentId 字段名
+const arrayWithPid = [
+  { id: 1, name: 'node1', pid: null },
+  { id: 2, name: 'node2', pid: 1 }
+]
+const treeWithPid = t.convertBackTree(arrayWithPid, { parentIdField: 'pid' })
+console.log(treeWithPid) // 正确转换
+
+// 支持自定义字段名
+const customArray = [
+  { nodeId: 1, name: 'node1', parentId: null },
+  { nodeId: 2, name: 'node2', parentId: 1 }
+]
+const customTree = t.convertBackTree(customArray, {
+  fieldNames: { id: 'nodeId', children: 'subNodes' }
+})
+console.log(customTree)
+// [
+//   {
+//     nodeId: 1,
+//     name: 'node1',
+//     subNodes: [
+//       { nodeId: 2, name: 'node2', subNodes: [] }
+//     ]
+//   }
+// ]
+
+// 处理多个根节点
+const multiRootArray = [
+  { id: 1, name: 'root1', parentId: null },
+  { id: 2, name: 'root2', parentId: null },
+  { id: 3, name: 'child1', parentId: 1 }
+]
+const multiRootTree = t.convertBackTree(multiRootArray)
+console.log(multiRootTree) // 包含两个根节点
+```
+
+**参数说明：**
+- `data` - 支持多种数据格式：
+  - 数组：扁平数组，每个元素需要包含 `id` 和 `parentId` 字段
+  - Map：key 为节点 ID，value 为节点对象
+  - Record（对象）：key 为节点 ID，value 为节点对象
+  - 单个对象：单个树节点对象
+- `options.rootParentId` - 根节点的 parentId 值，默认为 `null`
+- `options.parentIdField` - 父节点ID字段名，默认为 `'parentId'`
+- `options.fieldNames` - 自定义字段名配置，支持自定义 `id` 和 `children` 字段名
+
+**注意事项：**
+- 如果节点的 `parentId` 找不到对应的父节点，该节点会被作为根节点处理
+- 没有 `id` 的节点会被跳过
+- `parentId` 为 `null`、`undefined` 或等于 `rootParentId` 的节点会被视为根节点
+- Map 和 Record 格式转换时，key 会被设置为节点的 `id`
+
+**示例：支持 Map 和 Record 格式**
+
+```javascript
+// Map 格式
+const map = new Map([
+  [1, { name: 'node1', parentId: null }],
+  [2, { name: 'node2', parentId: 1 }]
+])
+const treeFromMap = t.convertBackTree(map)
+console.log(treeFromMap) // 正确转换为树结构
+
+// Record 格式
+const record = {
+  1: { name: 'node1', parentId: null },
+  2: { name: 'node2', parentId: 1 }
+}
+const treeFromRecord = t.convertBackTree(record)
+console.log(treeFromRecord) // 正确转换为树结构
 ```
 
 ---
@@ -996,14 +1269,20 @@ const foundNode2 = t.findTree(customTreeData, (node) => node.nodeId === 2, field
 ### 运行测试
 
 ```bash
-# 运行所有测试
+# 运行所有测试（自动打包后测试源码 + 打包文件，656 个测试用例）
 npm test
+
+# 运行所有测试（单次，不监听文件变化）
+npm test -- --run
+
+# 仅测试源代码（328 个测试用例）
+npm run test:src
+
+# 仅测试打包后的文件（328 个测试用例，需要先运行 npm run build）
+npm run test:dist
 
 # 运行测试并生成覆盖率报告
 npm run test:coverage
-
-# 运行测试（单次，不监听文件变化）
-npm test -- --run
 ```
 
 ## 开发
@@ -1015,9 +1294,33 @@ npm install
 # 运行测试
 npm test
 
-# 构建项目
+# 构建项目（先删除 dist 目录，然后重新打包）
 npm run build
 ```
+
+## CI/CD
+
+### 本地运行 CI 流程
+
+你可以通过一个命令执行完整的 CI 流程：
+
+```bash
+npm run ci
+```
+
+这个命令会依次执行：
+1. `npm test -- --run` - 自动打包并运行所有测试（源码 + 打包文件，656 个测试用例）
+2. `npm run test:coverage` - 生成覆盖率报告
+3. `npm run update:badge` - 更新覆盖率徽章
+
+### GitHub Actions
+
+项目已配置 GitHub Actions，每次推送代码到主分支时会自动运行 `npm run ci`，并：
+
+1. 运行完整的 CI 流程（构建、测试、更新徽章）
+2. 自动提交更新的徽章到仓库
+
+徽章会根据最新的测试覆盖率自动更新，无需手动操作。
 
 <div align="center">
 

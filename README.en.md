@@ -10,11 +10,11 @@
 
 ![npm version](https://img.shields.io/npm/v/tree-processor?style=flat-square)
 ![npm downloads](https://img.shields.io/npm/dm/tree-processor?style=flat-square)
-![bundle size](https://img.shields.io/badge/bundle-6.6KB-blue?style=flat-square)
+![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
 
-A lightweight tree-structured data processing utility library written in TypeScript, supporting tree-shaking, with each format bundle size approximately **6-7 KB** (ESM: 6.39 KB, CJS: 6.64 KB, UMD: 6.68 KB).
+A lightweight tree-structured data processing utility library written in TypeScript, supporting tree-shaking, with each format bundle size approximately **8.2-8.5 KB** (ESM: 8.24 KB, CJS: 8.51 KB, UMD: 8.52 KB).
 
 
 </div>
@@ -30,6 +30,7 @@ A lightweight tree-structured data processing utility library written in TypeScr
   - [Search Methods](#search-methods)
   - [Access Methods](#access-methods)
   - [Modification Methods](#modification-methods)
+  - [Conversion Methods](#conversion-methods)
   - [Query Methods](#query-methods)
   - [Validation Methods](#validation-methods)
 - [Custom Field Names](#custom-field-names)
@@ -38,15 +39,15 @@ A lightweight tree-structured data processing utility library written in TypeScr
 
 ## ✨ Features
 
-- **Lightweight** - Each format bundle size is only 6-7 KB (ESM: 6.39 KB, CJS: 6.64 KB, UMD: 6.68 KB), minimal impact on project size
+- **Lightweight** - Each format bundle size is only 8.2-8.5 KB (ESM: 8.24 KB, CJS: 8.51 KB, UMD: 8.52 KB), minimal impact on project size
 - **Tree-shaking Support** - Supports on-demand imports, only bundles the code you actually use, further reducing bundle size
 - **Full TypeScript Support** - Provides complete type definitions and IntelliSense, improving development experience
 - **Flexible Custom Field Names** - Supports custom children and id field names, adapting to various data structures
 - **Zero Dependencies** - No external dependencies, ready to use out of the box, no need to worry about dependency conflicts
-- **Comprehensive Test Coverage** - Contains 290 test cases with 99%+ test coverage (99.67% statement coverage, 99.32% branch coverage, 100% function coverage), covering basic functionality, edge cases, error handling, and complex scenarios
-- **Rich API** - Provides 30+ methods, including array-like APIs (map, filter, find, some, every, includes, at, indexOf, etc.), and tree-specific operations (get parent/child nodes, depth calculation, data validation, etc.), covering complete scenarios for traversal, search, modification, and validation
+- **Comprehensive Test Coverage** - Contains 328 test cases with 99%+ test coverage (99% statement coverage, 98.41% branch coverage, 100% function coverage, 98.99% line coverage), covering basic functionality, edge cases, error handling, and complex scenarios
+- **Rich API** - Provides 32+ methods, including array-like APIs (map, filter, find, some, every, includes, at, indexOf, etc.), and tree-specific operations (get parent/child nodes, depth calculation, data validation, format conversion, etc.), covering complete scenarios for traversal, search, modification, conversion, and validation
 
-**Supported methods:** mapTree, forEachTree, filterTree, findTree, pushTree, unshiftTree, popTree, shiftTree, someTree, everyTree, includesTree, atTree, indexOfTree, atIndexOfTree, dedupTree, removeTree, getParentTree, getChildrenTree, getSiblingsTree, getNodeDepthMap, getNodeDepth, isLeafNode, isRootNode, isEmptyTreeData, isEmptySingleTreeData, isTreeData, isSingleTreeData, isValidTreeNode, isTreeNodeWithCircularCheck, isSafeTreeDepth. The last parameter of each method can customize the property names for children and id.
+**Supported methods:** mapTree, forEachTree, filterTree, findTree, pushTree, unshiftTree, popTree, shiftTree, someTree, everyTree, includesTree, atTree, indexOfTree, atIndexOfTree, dedupTree, removeTree, getParentTree, getChildrenTree, getSiblingsTree, getNodeDepthMap, getNodeDepth, isLeafNode, isRootNode, isEmptyTreeData, isEmptySingleTreeData, isTreeData, isSingleTreeData, isValidTreeNode, isTreeNodeWithCircularCheck, isSafeTreeDepth, convertToArrayTree, convertBackTree, convertToMapTree, convertToLevelArrayTree, convertToObjectTree. The last parameter of each method can customize the property names for children and id.
 
 ### 💡 Use Cases
 
@@ -420,6 +421,280 @@ console.log(uniqueTreeData) // Returns deduplicated tree-structured data
 // Deduplicate based on name field
 const uniqueByNameTree = t.dedupTree(treeData, 'name')
 console.log(uniqueByNameTree) // Returns data deduplicated by name
+```
+
+---
+
+## Conversion Methods
+
+### convertToArrayTree
+
+Flatten tree-structured data into an array. The returned array contains nodes without the `children` field.
+
+```javascript
+// Flatten tree structure into an array
+const array = t.convertToArrayTree(treeData)
+console.log(array) 
+// [
+//   { id: 1, name: 'node1' },
+//   { id: 2, name: 'node2' },
+//   { id: 4, name: 'node4' },
+//   { id: 5, name: 'node5' },
+//   { id: 3, name: 'node3' },
+//   { id: 6, name: 'node6' }
+// ]
+
+// Note: Returned nodes do not contain the children field
+array.forEach(node => {
+  console.log(node.children) // undefined
+})
+
+// Support custom field names
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customArray = t.convertToArrayTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customArray) // Flattened array without subNodes field
+```
+
+### convertToMapTree
+
+Convert tree-structured data to a Map, where the key is the node ID and the value is the node object (without the `children` field). Suitable for scenarios requiring fast node lookup by ID.
+
+```javascript
+// Convert tree structure to Map
+const map = t.convertToMapTree(treeData)
+console.log(map instanceof Map) // true
+console.log(map.size) // 6
+
+// Quickly find node by ID
+const node = map.get(2)
+console.log(node) // { id: 2, name: 'node2' }
+console.log(node.children) // undefined (does not contain children field)
+
+// Support custom field names
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customMap = t.convertToMapTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customMap.get(1)) // { nodeId: 1, name: 'node1' }
+```
+
+### convertToLevelArrayTree
+
+Convert tree-structured data to a level array (two-dimensional array), grouped by depth. The outer array is indexed by depth, and the inner array contains all nodes at that depth.
+
+```javascript
+// Convert tree structure to level array
+const levelArray = t.convertToLevelArrayTree(treeData)
+console.log(levelArray)
+// [
+//   [{ id: 1, name: 'node1' }],           // Level 0
+//   [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }],  // Level 1
+//   [{ id: 4, name: 'node4' }, { id: 5, name: 'node5' }, { id: 6, name: 'node6' }]  // Level 2
+// ]
+
+// Traverse each level
+levelArray.forEach((level, depth) => {
+  console.log(`Depth ${depth}:`, level)
+})
+
+// Note: Returned nodes do not contain children field
+levelArray[0][0].children // undefined
+
+// Support custom field names
+const customTree = [
+  {
+    nodeId: 1,
+    name: 'node1',
+    subNodes: [
+      { nodeId: 2, name: 'node2' }
+    ]
+  }
+]
+const customLevelArray = t.convertToLevelArrayTree(customTree, {
+  children: 'subNodes',
+  id: 'nodeId'
+})
+console.log(customLevelArray) // Array grouped by level
+```
+
+### convertToObjectTree
+
+Convert single-root tree-structured data to an object. If the tree has only one root node, returns that node object; otherwise returns `null`.
+
+```javascript
+// Convert single-root tree to object
+const singleRootTree = [
+  {
+    id: 1,
+    name: 'node1',
+    value: 100,
+    children: [
+      { id: 2, name: 'node2' }
+    ]
+  }
+]
+const rootNode = t.convertToObjectTree(singleRootTree)
+console.log(rootNode) 
+// {
+//   id: 1,
+//   name: 'node1',
+//   value: 100,
+//   children: [{ id: 2, name: 'node2' }]
+// }
+
+// Multiple root nodes return null
+const multiRootTree = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+const result = t.convertToObjectTree(multiRootTree)
+console.log(result) // null
+
+// Empty tree returns null
+const emptyTree = []
+const emptyResult = t.convertToObjectTree(emptyTree)
+console.log(emptyResult) // null
+```
+
+### convertBackTree
+
+Convert various data structures to tree-structured data. Supports array, Map, Record (object) and other formats. Each element in the array needs to contain `id` and `parentId` fields.
+
+```javascript
+// Convert flat array to tree structure
+const array = [
+  { id: 1, name: 'node1', parentId: null },
+  { id: 2, name: 'node2', parentId: 1 },
+  { id: 3, name: 'node3', parentId: 1 },
+  { id: 4, name: 'node4', parentId: 2 },
+  { id: 5, name: 'node5', parentId: 2 },
+  { id: 6, name: 'node6', parentId: 3 }
+]
+const tree = t.convertBackTree(array)
+console.log(tree)
+// [
+//   {
+//     id: 1,
+//     name: 'node1',
+//     children: [
+//       {
+//         id: 2,
+//         name: 'node2',
+//         children: [
+//           { id: 4, name: 'node4', children: [] },
+//           { id: 5, name: 'node5', children: [] }
+//         ]
+//       },
+//       {
+//         id: 3,
+//         name: 'node3',
+//         children: [
+//           { id: 6, name: 'node6', children: [] }
+//         ]
+//       }
+//     ]
+//   }
+// ]
+
+// Custom root node parentId value
+const arrayWithZero = [
+  { id: 1, name: 'node1', parentId: 0 },
+  { id: 2, name: 'node2', parentId: 1 }
+]
+const treeWithZero = t.convertBackTree(arrayWithZero, { rootParentId: 0 })
+console.log(treeWithZero) // Correctly converted
+
+// Custom parentId field name
+const arrayWithPid = [
+  { id: 1, name: 'node1', pid: null },
+  { id: 2, name: 'node2', pid: 1 }
+]
+const treeWithPid = t.convertBackTree(arrayWithPid, { parentIdField: 'pid' })
+console.log(treeWithPid) // Correctly converted
+
+// Support custom field names
+const customArray = [
+  { nodeId: 1, name: 'node1', parentId: null },
+  { nodeId: 2, name: 'node2', parentId: 1 }
+]
+const customTree = t.convertBackTree(customArray, {
+  fieldNames: { id: 'nodeId', children: 'subNodes' }
+})
+console.log(customTree)
+// [
+//   {
+//     nodeId: 1,
+//     name: 'node1',
+//     subNodes: [
+//       { nodeId: 2, name: 'node2', subNodes: [] }
+//     ]
+//   }
+// ]
+
+// Handle multiple root nodes
+const multiRootArray = [
+  { id: 1, name: 'root1', parentId: null },
+  { id: 2, name: 'root2', parentId: null },
+  { id: 3, name: 'child1', parentId: 1 }
+]
+const multiRootTree = t.convertBackTree(multiRootArray)
+console.log(multiRootTree) // Contains two root nodes
+```
+
+**Parameter Description:**
+- `data` - Supports multiple data formats:
+  - Array: Flat array, each element needs to contain `id` and `parentId` fields
+  - Map: key is node ID, value is node object
+  - Record (object): key is node ID, value is node object
+  - Single object: Single tree node object
+- `options.rootParentId` - The parentId value for root nodes, defaults to `null`
+- `options.parentIdField` - Parent node ID field name, defaults to `'parentId'`
+- `options.fieldNames` - Custom field name configuration, supports custom `id` and `children` field names
+
+**Notes:**
+- If a node's `parentId` cannot find a corresponding parent node, that node will be treated as a root node
+- Nodes without `id` will be skipped
+- Nodes with `parentId` as `null`, `undefined`, or equal to `rootParentId` will be treated as root nodes
+- When converting Map and Record formats, the key will be set as the node's `id`
+
+**Example: Support Map and Record formats**
+
+```javascript
+// Map format
+const map = new Map([
+  [1, { name: 'node1', parentId: null }],
+  [2, { name: 'node2', parentId: 1 }]
+])
+const treeFromMap = t.convertBackTree(map)
+console.log(treeFromMap) // Correctly converted to tree structure
+
+// Record format
+const record = {
+  1: { name: 'node1', parentId: null },
+  2: { name: 'node2', parentId: 1 }
+}
+const treeFromRecord = t.convertBackTree(record)
+console.log(treeFromRecord) // Correctly converted to tree structure
 ```
 
 ---
@@ -994,14 +1269,20 @@ const foundNode2 = t.findTree(customTreeData, (node) => node.nodeId === 2, field
 ### Run Tests
 
 ```bash
-# Run all tests
+# Run all tests (automatically build then test source + bundled files, 656 test cases)
 npm test
+
+# Run all tests (once, don't watch for file changes)
+npm test -- --run
+
+# Test source code only (328 test cases)
+npm run test:src
+
+# Test bundled files only (328 test cases, requires npm run build first)
+npm run test:dist
 
 # Run tests and generate coverage report
 npm run test:coverage
-
-# Run tests (once, don't watch for file changes)
-npm test -- --run
 ```
 
 ## Development
@@ -1013,9 +1294,33 @@ npm install
 # Run tests
 npm test
 
-# Build project
+# Build project (delete dist directory first, then rebuild)
 npm run build
 ```
+
+## CI/CD
+
+### Run CI Pipeline Locally
+
+You can run the complete CI pipeline with a single command:
+
+```bash
+npm run ci
+```
+
+This command will execute in sequence:
+1. `npm test -- --run` - Automatically build and run all tests (source + bundled files, 656 test cases)
+2. `npm run test:coverage` - Generate coverage report
+3. `npm run update:badge` - Update the coverage badge
+
+### GitHub Actions
+
+The project is configured with GitHub Actions. Every time code is pushed to the main branch, it will automatically run `npm run ci` and:
+
+1. Execute the complete CI pipeline (build, test, update badge)
+2. Automatically commit the updated badge to the repository
+
+The badge will automatically update based on the latest test coverage, no manual operation required.
 
 <div align="center">
 

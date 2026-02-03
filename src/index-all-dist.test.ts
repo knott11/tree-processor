@@ -1,43 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  mapTree,
-  filterTree,
-  findTree,
-  pushTree,
-  unshiftTree,
-  popTree,
-  shiftTree,
-  someTree,
-  everyTree,
-  atTree,
-  indexOfTree,
-  atIndexOfTree,
-  getNodeDepthMap,
-  getNodeDepth,
-  dedupTree,
-  removeTree,
-  forEachTree,
-  isEmptyTreeData,
-  isEmptySingleTreeData,
-  getParentTree,
-  getChildrenTree,
-  getSiblingsTree,
-  includesTree,
-  isSingleTreeData,
-  isTreeData,
-  isValidTreeNode,
-  isTreeNodeWithCircularCheck,
-  isSafeTreeDepth,
-  isLeafNode,
-  isRootNode,
-  convertToArrayTree,
-  convertBackTree,
-  convertToMapTree,
-  convertToLevelArrayTree,
-  convertToObjectTree,
-} from './index';
+import { wrapTests } from './test-wrapper';
+import * as sourceModule from './index';
 
-describe('Tree Processor', () => {
+wrapTests('Tree Processor - 完整测试（源代码 + 打包文件）', sourceModule, (module) => {
   let treeData: any[];
 
   beforeEach(() => {
@@ -67,14 +32,14 @@ describe('Tree Processor', () => {
   describe('mapTree', () => {
     it('应该遍历所有节点并执行回调', () => {
       const result: string[] = [];
-      mapTree(treeData, (item) => {
+      module.mapTree(treeData, (item) => {
         result.push(item.name);
       });
       expect(result).toEqual(['node1', 'node2', 'node4', 'node5', 'node3', 'node6']);
     });
 
     it('应该返回映射后的数组', () => {
-      const result = mapTree(treeData, (item) => item.name);
+      const result = module.mapTree(treeData, (item) => item.name);
       expect(result).toEqual(['node1', 'node2', 'node4', 'node5', 'node3', 'node6']);
     });
   });
@@ -82,7 +47,7 @@ describe('Tree Processor', () => {
   describe('filterTree', () => {
     it('应该过滤出满足条件的节点', () => {
       const values = ['node1', 'node2', 'node3'];
-      const result = filterTree(treeData, (item) => {
+      const result = module.filterTree(treeData, (item) => {
         return values.includes(item.name);
       });
       expect(result).toHaveLength(3);
@@ -92,7 +57,7 @@ describe('Tree Processor', () => {
 
   describe('findTree', () => {
     it('应该找到满足条件的第一个节点', () => {
-      const result = findTree(treeData, (item) => {
+      const result = module.findTree(treeData, (item) => {
         return item.hasOwnProperty('children');
       });
       expect(result).not.toBeNull();
@@ -100,7 +65,7 @@ describe('Tree Processor', () => {
     });
 
     it('应该返回null如果未找到', () => {
-      const result = findTree(treeData, (item) => item.name === 'notfound');
+      const result = module.findTree(treeData, (item) => item.name === 'notfound');
       expect(result).toBeNull();
     });
   });
@@ -108,7 +73,7 @@ describe('Tree Processor', () => {
   describe('pushTree', () => {
     it('应该在指定节点下添加子节点', () => {
       const newNode = { id: 7, name: 'node7' };
-      const success = pushTree(treeData, 1, newNode);
+      const success = module.pushTree(treeData, 1, newNode);
       expect(success).toBe(true);
       expect(treeData[0].children.length).toBe(3);
       expect(treeData[0].children[2].name).toBe('node7');
@@ -116,7 +81,7 @@ describe('Tree Processor', () => {
 
     it('应该返回false如果未找到目标节点', () => {
       const newNode = { id: 7, name: 'node7' };
-      const success = pushTree(treeData, 999, newNode);
+      const success = module.pushTree(treeData, 999, newNode);
       expect(success).toBe(false);
     });
   });
@@ -124,7 +89,7 @@ describe('Tree Processor', () => {
   describe('unshiftTree', () => {
     it('应该在指定节点下添加子节点到开头', () => {
       const newNode = { id: 7, name: 'node7' };
-      const success = unshiftTree(treeData, 1, newNode);
+      const success = module.unshiftTree(treeData, 1, newNode);
       expect(success).toBe(true);
       expect(treeData[0].children.length).toBe(3);
       expect(treeData[0].children[0].name).toBe('node7');
@@ -149,7 +114,7 @@ describe('Tree Processor', () => {
       ];
       // 在深层子节点中找到节点3并添加子节点
       const newNode = { id: 4, name: 'node4' };
-      const success = unshiftTree(deepTree, 3, newNode);
+      const success = module.unshiftTree(deepTree, 3, newNode);
       expect(success).toBe(true);
       expect(deepTree[0].children[0].children[0].children.length).toBe(1);
       expect(deepTree[0].children[0].children[0].children[0].id).toBe(4);
@@ -168,7 +133,7 @@ describe('Tree Processor', () => {
         },
       ];
       const newNode = { id: 3, name: 'node3' };
-      const success = unshiftTree(treeWithoutChildren, 2, newNode);
+      const success = module.unshiftTree(treeWithoutChildren, 2, newNode);
       expect(success).toBe(true);
       expect(Array.isArray(treeWithoutChildren[0].children[0].children)).toBe(true);
       expect(treeWithoutChildren[0].children[0].children[0].id).toBe(3);
@@ -176,21 +141,21 @@ describe('Tree Processor', () => {
 
     it('应该返回false如果未找到目标节点（触发178行）', () => {
       const newNode = { id: 999, name: 'node999' };
-      const success = unshiftTree(treeData, 999, newNode);
+      const success = module.unshiftTree(treeData, 999, newNode);
       expect(success).toBe(false);
     });
   });
 
   describe('popTree', () => {
     it('应该删除指定节点下的最后一个子节点', () => {
-      const success = popTree(treeData, 1);
+      const success = module.popTree(treeData, 1);
       expect(success).toBe(true);
       expect(treeData[0].children.length).toBe(1);
       expect(treeData[0].children[0].id).toBe(2);
     });
 
     it('应该返回false如果节点没有子节点', () => {
-      const success = popTree(treeData, 4);
+      const success = module.popTree(treeData, 4);
       expect(success).toBe(false);
     });
 
@@ -212,7 +177,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 在深层子节点中找到节点3并删除其最后一个子节点
-      const success = popTree(deepTree, 3);
+      const success = module.popTree(deepTree, 3);
       expect(success).toBe(true);
       expect(deepTree[0].children[0].children[0].children.length).toBe(1);
       expect(deepTree[0].children[0].children[0].children[0].id).toBe(4);
@@ -221,14 +186,14 @@ describe('Tree Processor', () => {
 
   describe('shiftTree', () => {
     it('应该删除指定节点下的第一个子节点', () => {
-      const success = shiftTree(treeData, 1);
+      const success = module.shiftTree(treeData, 1);
       expect(success).toBe(true);
       expect(treeData[0].children.length).toBe(1);
       expect(treeData[0].children[0].id).toBe(3);
     });
 
     it('应该返回false如果节点没有子节点', () => {
-      const success = shiftTree(treeData, 4);
+      const success = module.shiftTree(treeData, 4);
       expect(success).toBe(false);
     });
 
@@ -250,7 +215,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 在深层子节点中找到节点3并删除其第一个子节点
-      const success = shiftTree(deepTree, 3);
+      const success = module.shiftTree(deepTree, 3);
       expect(success).toBe(true);
       expect(deepTree[0].children[0].children[0].children.length).toBe(1);
       expect(deepTree[0].children[0].children[0].children[0].id).toBe(5);
@@ -268,31 +233,31 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const success = shiftTree(treeWithNoChildren, 2);
+      const success = module.shiftTree(treeWithNoChildren, 2);
       expect(success).toBe(false);
     });
   });
 
   describe('someTree', () => {
     it('应该返回true如果存在满足条件的节点', () => {
-      const result = someTree(treeData, (item) => item.name === 'node2');
+      const result = module.someTree(treeData, (item) => item.name === 'node2');
       expect(result).toBe(true);
     });
 
     it('应该返回false如果不存在满足条件的节点', () => {
-      const result = someTree(treeData, (item) => item.name === 'jack');
+      const result = module.someTree(treeData, (item) => item.name === 'jack');
       expect(result).toBe(false);
     });
   });
 
   describe('everyTree', () => {
     it('应该返回true如果所有节点都满足条件', () => {
-      const result = everyTree(treeData, (item) => item.id > 0);
+      const result = module.everyTree(treeData, (item) => item.id > 0);
       expect(result).toBe(true);
     });
 
     it('应该返回false如果有节点不满足条件', () => {
-      const result = everyTree(treeData, (item) => item.id > 3);
+      const result = module.everyTree(treeData, (item) => item.id > 3);
       expect(result).toBe(false);
     });
 
@@ -306,7 +271,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const result = everyTree(treeWithInvalidChild, (item) => item.name !== 'invalid');
+      const result = module.everyTree(treeWithInvalidChild, (item) => item.name !== 'invalid');
       expect(result).toBe(false);
     });
 
@@ -324,58 +289,58 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const result = everyTree(treeWithNestedInvalid, (item) => item.value > 0);
+      const result = module.everyTree(treeWithNestedInvalid, (item) => item.value > 0);
       expect(result).toBe(false);
     });
   });
 
   describe('atTree', () => {
     it('应该根据父节点ID和索引获取子节点', () => {
-      const result = atTree(treeData, 1, 0);
+      const result = module.atTree(treeData, 1, 0);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(2);
     });
 
     it('应该支持负数索引', () => {
-      const result = atTree(treeData, 1, -1);
+      const result = module.atTree(treeData, 1, -1);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(3);
     });
 
     it('应该返回null如果未找到', () => {
-      const result = atTree(treeData, 999, 0);
+      const result = module.atTree(treeData, 999, 0);
       expect(result).toBeNull();
     });
   });
 
   describe('indexOfTree', () => {
     it('应该返回从根节点到目标节点的索引路径', () => {
-      const result = indexOfTree(treeData, 4);
+      const result = module.indexOfTree(treeData, 4);
       expect(result).toEqual([0, 0, 0]);
     });
 
     it('应该返回null如果未找到', () => {
-      const result = indexOfTree(treeData, 999);
+      const result = module.indexOfTree(treeData, 999);
       expect(result).toBeNull();
     });
   });
 
   describe('atIndexOfTree', () => {
     it('应该根据索引路径获取节点', () => {
-      const result = atIndexOfTree(treeData, [0, 1, 0]);
+      const result = module.atIndexOfTree(treeData, [0, 1, 0]);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(6);
     });
 
     it('应该返回null如果路径无效', () => {
-      const result = atIndexOfTree(treeData, [999, 0]);
+      const result = module.atIndexOfTree(treeData, [999, 0]);
       expect(result).toBeNull();
     });
   });
 
   describe('getNodeDepthMap', () => {
     it('应该返回节点ID到深度的映射', () => {
-      const result = getNodeDepthMap(treeData);
+      const result = module.getNodeDepthMap(treeData);
       expect(result[1]).toBe(1);
       expect(result[2]).toBe(2);
       expect(result[4]).toBe(3);
@@ -384,22 +349,22 @@ describe('Tree Processor', () => {
 
   describe('getNodeDepth', () => {
     it('应该返回根节点的深度', () => {
-      const depth = getNodeDepth(treeData, 1);
+      const depth = module.getNodeDepth(treeData, 1);
       expect(depth).toBe(1);
     });
 
     it('应该返回子节点的深度', () => {
-      const depth = getNodeDepth(treeData, 2);
+      const depth = module.getNodeDepth(treeData, 2);
       expect(depth).toBe(2);
     });
 
     it('应该返回深层节点的深度', () => {
-      const depth = getNodeDepth(treeData, 4);
+      const depth = module.getNodeDepth(treeData, 4);
       expect(depth).toBe(3);
     });
 
     it('应该返回null如果未找到节点', () => {
-      const depth = getNodeDepth(treeData, 999);
+      const depth = module.getNodeDepth(treeData, 999);
       expect(depth).toBeNull();
     });
 
@@ -419,10 +384,10 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      expect(getNodeDepth(multiRoot, 1)).toBe(1);
-      expect(getNodeDepth(multiRoot, 2)).toBe(1);
-      expect(getNodeDepth(multiRoot, 3)).toBe(2);
-      expect(getNodeDepth(multiRoot, 5)).toBe(3);
+      expect(module.getNodeDepth(multiRoot, 1)).toBe(1);
+      expect(module.getNodeDepth(multiRoot, 2)).toBe(1);
+      expect(module.getNodeDepth(multiRoot, 3)).toBe(2);
+      expect(module.getNodeDepth(multiRoot, 5)).toBe(3);
     });
 
     it('应该支持自定义字段名', () => {
@@ -440,13 +405,13 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      expect(getNodeDepth(customTree, 1, fieldNames)).toBe(1);
-      expect(getNodeDepth(customTree, 2, fieldNames)).toBe(2);
-      expect(getNodeDepth(customTree, 3, fieldNames)).toBe(3);
+      expect(module.getNodeDepth(customTree, 1, fieldNames)).toBe(1);
+      expect(module.getNodeDepth(customTree, 2, fieldNames)).toBe(2);
+      expect(module.getNodeDepth(customTree, 3, fieldNames)).toBe(3);
     });
 
     it('应该处理空数组', () => {
-      const depth = getNodeDepth([], 1);
+      const depth = module.getNodeDepth([], 1);
       expect(depth).toBeNull();
     });
 
@@ -472,19 +437,19 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      expect(getNodeDepth(deepTree, 1)).toBe(1);
-      expect(getNodeDepth(deepTree, 2)).toBe(2);
-      expect(getNodeDepth(deepTree, 3)).toBe(3);
-      expect(getNodeDepth(deepTree, 4)).toBe(4);
-      expect(getNodeDepth(deepTree, 5)).toBe(5);
+      expect(module.getNodeDepth(deepTree, 1)).toBe(1);
+      expect(module.getNodeDepth(deepTree, 2)).toBe(2);
+      expect(module.getNodeDepth(deepTree, 3)).toBe(3);
+      expect(module.getNodeDepth(deepTree, 4)).toBe(4);
+      expect(module.getNodeDepth(deepTree, 5)).toBe(5);
     });
 
     it('应该与getNodeDepthMap返回的深度一致', () => {
-      const depthMap = getNodeDepthMap(treeData);
-      expect(getNodeDepth(treeData, 1)).toBe(depthMap[1]);
-      expect(getNodeDepth(treeData, 2)).toBe(depthMap[2]);
-      expect(getNodeDepth(treeData, 4)).toBe(depthMap[4]);
-      expect(getNodeDepth(treeData, 6)).toBe(depthMap[6]);
+      const depthMap = module.getNodeDepthMap(treeData);
+      expect(module.getNodeDepth(treeData, 1)).toBe(depthMap[1]);
+      expect(module.getNodeDepth(treeData, 2)).toBe(depthMap[2]);
+      expect(module.getNodeDepth(treeData, 4)).toBe(depthMap[4]);
+      expect(module.getNodeDepth(treeData, 6)).toBe(depthMap[6]);
     });
   });
 
@@ -500,7 +465,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const result = dedupTree(duplicateTree, 'id');
+      const result = module.dedupTree(duplicateTree, 'id');
       expect(result[0].children).toHaveLength(1);
       expect(result[0].children[0].id).toBe(2);
     });
@@ -518,7 +483,7 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      const result = findTree(customTree, (item) => item.nodeId === 2, fieldNames);
+      const result = module.findTree(customTree, (item) => item.nodeId === 2, fieldNames);
       expect(result).not.toBeNull();
       expect(result?.nodeId).toBe(2);
     });
@@ -528,37 +493,37 @@ describe('Tree Processor', () => {
 
   describe('边界情况 - 空数据', () => {
     it('mapTree应该处理空数组', () => {
-      const result = mapTree([], (node) => node);
+      const result = module.mapTree([], (node) => node);
       expect(result).toEqual([]);
     });
 
     it('filterTree应该处理空数组', () => {
-      const result = filterTree([], () => true);
+      const result = module.filterTree([], () => true);
       expect(result).toEqual([]);
     });
 
     it('findTree应该处理空数组', () => {
-      const result = findTree([], () => true);
+      const result = module.findTree([], () => true);
       expect(result).toBeNull();
     });
 
     it('someTree应该处理空数组', () => {
-      const result = someTree([], () => true);
+      const result = module.someTree([], () => true);
       expect(result).toBe(false);
     });
 
     it('everyTree应该处理空数组', () => {
-      const result = everyTree([], () => true);
+      const result = module.everyTree([], () => true);
       expect(result).toBe(true);
     });
 
     it('getNodeDepthMap应该处理空数组', () => {
-      const result = getNodeDepthMap([]);
+      const result = module.getNodeDepthMap([]);
       expect(result).toEqual({});
     });
 
     it('dedupTree应该处理空数组', () => {
-      const result = dedupTree([], 'id');
+      const result = module.dedupTree([], 'id');
       expect(result).toEqual([]);
     });
   });
@@ -566,20 +531,20 @@ describe('Tree Processor', () => {
   describe('边界情况 - 单节点树', () => {
     it('mapTree应该处理单节点', () => {
       const singleNode = [{ id: 1, name: 'root' }];
-      const result = mapTree(singleNode, (node) => node.name);
+      const result = module.mapTree(singleNode, (node) => node.name);
       expect(result).toEqual(['root']);
     });
 
     it('findTree应该找到单节点', () => {
       const singleNode = [{ id: 1, name: 'root' }];
-      const result = findTree(singleNode, (node) => node.id === 1);
+      const result = module.findTree(singleNode, (node) => node.id === 1);
       expect(result).not.toBeNull();
       expect(result?.name).toBe('root');
     });
 
     it('pushTree应该在单节点下添加子节点', () => {
       const singleNode: any[] = [{ id: 1, name: 'root' }];
-      const success = pushTree(singleNode, 1, { id: 2, name: 'child' });
+      const success = module.pushTree(singleNode, 1, { id: 2, name: 'child' });
       expect(success).toBe(true);
       expect(singleNode[0].children).toHaveLength(1);
       expect(singleNode[0].children[0].name).toBe('child');
@@ -616,11 +581,11 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = findTree(deepTree, (node) => node.id === 5);
+      const result = module.findTree(deepTree, (node) => node.id === 5);
       expect(result).not.toBeNull();
       expect(result?.name).toBe('level5');
 
-      const depthMap = getNodeDepthMap(deepTree);
+      const depthMap = module.getNodeDepthMap(deepTree);
       expect(depthMap[5]).toBe(5);
     });
 
@@ -642,7 +607,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const path = indexOfTree(deepTree, 4);
+      const path = module.indexOfTree(deepTree, 4);
       expect(path).toEqual([0, 0, 0, 0]);
     });
   });
@@ -661,7 +626,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = mapTree(treeWithNull, (node) => node.name);
+      const result = module.mapTree(treeWithNull, (node) => node.name);
       expect(result).toEqual(['node1', 'node2']);
     });
 
@@ -674,7 +639,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = mapTree(treeWithUndefined, (node) => node.name);
+      const result = module.mapTree(treeWithUndefined, (node) => node.name);
       expect(result).toEqual(['node1']);
     });
 
@@ -687,7 +652,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = mapTree(treeWithEmpty, (node) => node.name);
+      const result = module.mapTree(treeWithEmpty, (node) => node.name);
       expect(result).toEqual(['node1']);
     });
 
@@ -700,30 +665,30 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = mapTree(treeWithInvalid, (node) => node.name);
+      const result = module.mapTree(treeWithInvalid, (node) => node.name);
       expect(result).toEqual(['node1']);
     });
   });
 
   describe('边界情况 - atTree索引边界', () => {
     it('应该处理索引超出范围的情况', () => {
-      const result = atTree(treeData, 1, 999);
+      const result = module.atTree(treeData, 1, 999);
       expect(result).toBeNull();
     });
 
     it('应该处理负数索引超出范围的情况', () => {
-      const result = atTree(treeData, 1, -999);
+      const result = module.atTree(treeData, 1, -999);
       expect(result).toBeNull();
     });
 
     it('应该处理负数索引等于数组长度的情况', () => {
-      const result = atTree(treeData, 1, -2);
+      const result = module.atTree(treeData, 1, -2);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(2);
     });
 
     it('应该处理索引为0的情况', () => {
-      const result = atTree(treeData, 1, 0);
+      const result = module.atTree(treeData, 1, 0);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(2);
     });
@@ -735,7 +700,7 @@ describe('Tree Processor', () => {
           children: 'not an array' as any,
         },
       ];
-      const result = atTree(treeWithInvalidChildren, 1, 0);
+      const result = module.atTree(treeWithInvalidChildren, 1, 0);
       expect(result).toBeNull();
     });
 
@@ -746,7 +711,7 @@ describe('Tree Processor', () => {
           children: [],
         },
       ];
-      const result = atTree(treeWithEmptyChildren, 1, 0);
+      const result = module.atTree(treeWithEmptyChildren, 1, 0);
       expect(result).toBeNull();
     });
 
@@ -759,7 +724,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 测试负数索引：-1 应该返回最后一个元素（触发 false 分支）
-      const result = atTree(treeWithChildren, 1, -1);
+      const result = module.atTree(treeWithChildren, 1, -1);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(4);
     });
@@ -783,7 +748,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 在深层子节点中找到父节点，应该触发 329 行的 return found
-      const result = atTree(deepTree, 3, 0);
+      const result = module.atTree(deepTree, 3, 0);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(4);
     });
@@ -791,17 +756,17 @@ describe('Tree Processor', () => {
 
   describe('边界情况 - atIndexOfTree路径边界', () => {
     it('应该处理空路径数组', () => {
-      const result = atIndexOfTree(treeData, []);
+      const result = module.atIndexOfTree(treeData, []);
       expect(result).toBeNull();
     });
 
     it('应该处理路径超出范围', () => {
-      const result = atIndexOfTree(treeData, [999, 0]);
+      const result = module.atIndexOfTree(treeData, [999, 0]);
       expect(result).toBeNull();
     });
 
     it('应该处理负数索引路径', () => {
-      const result = atIndexOfTree(treeData, [-1, 0]);
+      const result = module.atIndexOfTree(treeData, [-1, 0]);
       expect(result).toBeNull();
     });
 
@@ -819,7 +784,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const result = atIndexOfTree(deepTree, [0, 0, 0, 0]);
+      const result = module.atIndexOfTree(deepTree, [0, 0, 0, 0]);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(4);
     });
@@ -836,7 +801,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const result = atIndexOfTree(treeWithInvalidChildren, [0, 0, 0]);
+      const result = module.atIndexOfTree(treeWithInvalidChildren, [0, 0, 0]);
       expect(result).toBeNull();
     });
 
@@ -848,7 +813,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 路径 [0, 0, 0] 但树只有两层，循环结束后应该返回 null
-      const result = atIndexOfTree(shallowTree, [0, 0, 0]);
+      const result = module.atIndexOfTree(shallowTree, [0, 0, 0]);
       expect(result).toBeNull();
     });
 
@@ -860,7 +825,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 路径 [0, 0] 但节点1没有children，循环结束后应该返回 null
-      const result = atIndexOfTree(treeWithoutChildren, [0, 0]);
+      const result = module.atIndexOfTree(treeWithoutChildren, [0, 0]);
       expect(result).toBeNull();
     });
 
@@ -877,7 +842,7 @@ describe('Tree Processor', () => {
         },
       ];
       // 路径 [0, 0, 0] 但节点2的children是undefined，应该返回 null
-      const result = atIndexOfTree(treeWithUndefinedChildren, [0, 0, 0]);
+      const result = module.atIndexOfTree(treeWithUndefinedChildren, [0, 0, 0]);
       expect(result).toBeNull();
     });
 
@@ -888,7 +853,7 @@ describe('Tree Processor', () => {
       const emptyTree: any[] = [];
       // 空树，但路径不为空，会在第一次循环就返回 null（414行）
       // 431 行可能是不可达代码，但让我们确保所有情况都被测试
-      const result = atIndexOfTree(emptyTree, [0]);
+      const result = module.atIndexOfTree(emptyTree, [0]);
       expect(result).toBeNull();
     });
   });
@@ -901,7 +866,7 @@ describe('Tree Processor', () => {
         { id: 5, name: 'root3' },
       ];
 
-      const result = mapTree(multiRoot, (node) => node.name);
+      const result = module.mapTree(multiRoot, (node) => node.name);
       expect(result).toEqual(['root1', 'child1', 'root2', 'child2', 'root3']);
     });
 
@@ -912,7 +877,7 @@ describe('Tree Processor', () => {
         { id: 3, name: 'root3' },
       ];
 
-      const result = findTree(multiRoot, (node) => node.id === 2);
+      const result = module.findTree(multiRoot, (node) => node.id === 2);
       expect(result).not.toBeNull();
       expect(result?.name).toBe('root2');
     });
@@ -929,7 +894,7 @@ describe('Tree Processor', () => {
       ];
 
       const newNode = { id: 3, name: 'child2' };
-      pushTree(testTree, 1, newNode);
+      module.pushTree(testTree, 1, newNode);
 
       // 验证新节点已添加
       expect(testTree[0].children).toHaveLength(2);
@@ -942,9 +907,9 @@ describe('Tree Processor', () => {
     it('多次pushTree应该按顺序添加', () => {
       const testTree: any[] = [{ id: 1, name: 'parent', children: [] }];
 
-      pushTree(testTree, 1, { id: 2, name: 'child1' });
-      pushTree(testTree, 1, { id: 3, name: 'child2' });
-      pushTree(testTree, 1, { id: 4, name: 'child3' });
+      module.pushTree(testTree, 1, { id: 2, name: 'child1' });
+      module.pushTree(testTree, 1, { id: 3, name: 'child2' });
+      module.pushTree(testTree, 1, { id: 4, name: 'child3' });
 
       expect(testTree[0].children).toHaveLength(3);
       expect(testTree[0].children[0].id).toBe(2);
@@ -965,12 +930,12 @@ describe('Tree Processor', () => {
       ];
 
       // 删除最后一个
-      popTree(testTree, 1);
+      module.popTree(testTree, 1);
       expect(testTree[0].children).toHaveLength(2);
       expect(testTree[0].children[1].id).toBe(3);
 
       // 删除第一个
-      shiftTree(testTree, 1);
+      module.shiftTree(testTree, 1);
       expect(testTree[0].children).toHaveLength(1);
       expect(testTree[0].children[0].id).toBe(3);
     });
@@ -991,7 +956,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = dedupTree(duplicateTree, 'id');
+      const result = module.dedupTree(duplicateTree, 'id');
       expect(result[0].children).toHaveLength(2);
       expect(result[0].children[0].id).toBe(2);
       expect(result[0].children[1].id).toBe(3);
@@ -1017,7 +982,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = dedupTree(duplicateTree, 'id');
+      const result = module.dedupTree(duplicateTree, 'id');
       // id=2的节点会被去重，只保留第一个
       expect(result[0].children).toHaveLength(1);
       // 第一个id=2的节点下，id=3的节点也会被去重
@@ -1038,7 +1003,7 @@ describe('Tree Processor', () => {
         },
       ];
 
-      const result = dedupTree(duplicateTree, 'id');
+      const result = module.dedupTree(duplicateTree, 'id');
       // 根据dedupTree的实现，只有当nodeKey !== undefined && nodeKey !== null时才会去重
       // 所以null和undefined的节点不会被去重，会全部保留
       expect(result[0].children.length).toBe(4);
@@ -1058,7 +1023,7 @@ describe('Tree Processor', () => {
       ];
 
       const indices: number[] = [];
-      filterTree(testTree, (node, index) => {
+      module.filterTree(testTree, (node, index) => {
         indices.push(index);
         return node.id > 1;
       });
@@ -1078,7 +1043,7 @@ describe('Tree Processor', () => {
       ];
 
       const indices: number[] = [];
-      filterTree(testTree, (node, index) => {
+      module.filterTree(testTree, (node, index) => {
         indices.push(index);
         return true;
       });
@@ -1101,14 +1066,14 @@ describe('Tree Processor', () => {
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
 
       // 测试多个方法
-      const found = findTree(customTree, (n) => n.nodeId === 2, fieldNames);
+      const found = module.findTree(customTree, (n) => n.nodeId === 2, fieldNames);
       expect(found).not.toBeNull();
 
-      const mapped = mapTree(customTree, (n) => n.name, fieldNames);
+      const mapped = module.mapTree(customTree, (n) => n.name, fieldNames);
       expect(mapped).toContain('root');
       expect(mapped).toContain('child');
 
-      const depthMap = getNodeDepthMap(customTree, fieldNames);
+      const depthMap = module.getNodeDepthMap(customTree, fieldNames);
       expect(depthMap[2]).toBe(2);
     });
 
@@ -1124,7 +1089,7 @@ describe('Tree Processor', () => {
       
       // 应该不会抛出错误
       expect(() => {
-        mapTree(customTree, (n) => n.name, fieldNames);
+        module.mapTree(customTree, (n) => n.name, fieldNames);
       }).not.toThrow();
     });
   });
@@ -1136,7 +1101,7 @@ describe('Tree Processor', () => {
         { id: 1, name: 'one' },
       ];
 
-      const result = findTree(treeWithZero, (n) => n.id === 0);
+      const result = module.findTree(treeWithZero, (n) => n.id === 0);
       expect(result).not.toBeNull();
       expect(result?.name).toBe('zero');
     });
@@ -1147,7 +1112,7 @@ describe('Tree Processor', () => {
         { id: true, name: 'true' },
       ];
 
-      const result = findTree(treeWithFalse, (n) => n.id === false);
+      const result = module.findTree(treeWithFalse, (n) => n.id === false);
       expect(result).not.toBeNull();
       expect(result?.name).toBe('false');
     });
@@ -1158,7 +1123,7 @@ describe('Tree Processor', () => {
         { id: 'node2', name: 'second' },
       ];
 
-      const result = findTree(treeWithString, (n) => n.id === 'node2');
+      const result = module.findTree(treeWithString, (n) => n.id === 'node2');
       expect(result).not.toBeNull();
       expect(result?.name).toBe('second');
     });
@@ -1178,13 +1143,13 @@ describe('Tree Processor', () => {
       ];
 
       // 先查找，再添加，再过滤
-      const found = findTree(complexTree, (n) => n.id === 1);
+      const found = module.findTree(complexTree, (n) => n.id === 1);
       expect(found).not.toBeNull();
 
-      pushTree(complexTree, 1, { id: 4, name: 'child3' });
+      module.pushTree(complexTree, 1, { id: 4, name: 'child3' });
       expect(complexTree[0].children).toHaveLength(3);
 
-      const filtered = filterTree(complexTree, (n) => n.id > 2);
+      const filtered = module.filterTree(complexTree, (n) => n.id > 2);
       expect(filtered.length).toBeGreaterThan(0);
     });
 
@@ -1204,9 +1169,9 @@ describe('Tree Processor', () => {
       ];
 
       // 在深层节点添加子节点
-      pushTree(deepTree, 3, { id: 5, name: 'deep-child' });
+      module.pushTree(deepTree, 3, { id: 5, name: 'deep-child' });
       
-      const found = findTree(deepTree, (n) => n.id === 3);
+      const found = module.findTree(deepTree, (n) => n.id === 3);
       expect(found).not.toBeNull();
       expect(found?.children).toHaveLength(2);
     });
@@ -1225,7 +1190,7 @@ describe('Tree Processor', () => {
         },
       ];
       
-      const success = removeTree(testTree, 2);
+      const success = module.removeTree(testTree, 2);
       expect(success).toBe(true);
       expect(testTree[0].children).toHaveLength(1);
       expect(testTree[0].children[0].id).toBe(3);
@@ -1247,7 +1212,7 @@ describe('Tree Processor', () => {
         },
       ];
       
-      const success = removeTree(testTree, 4);
+      const success = module.removeTree(testTree, 4);
       expect(success).toBe(true);
       expect(testTree[0].children[0].children).toHaveLength(1);
       expect(testTree[0].children[0].children[0].id).toBe(5);
@@ -1260,7 +1225,7 @@ describe('Tree Processor', () => {
         { id: 3, name: 'root3' },
       ];
       
-      const success = removeTree(testTree, 2);
+      const success = module.removeTree(testTree, 2);
       expect(success).toBe(true);
       expect(testTree).toHaveLength(2);
       expect(testTree[0].id).toBe(1);
@@ -1272,7 +1237,7 @@ describe('Tree Processor', () => {
         { id: 1, name: 'root' },
       ];
       
-      const success = removeTree(testTree, 999);
+      const success = module.removeTree(testTree, 999);
       expect(success).toBe(false);
       expect(testTree).toHaveLength(1);
     });
@@ -1288,7 +1253,7 @@ describe('Tree Processor', () => {
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
       
-      const success = removeTree(testTree, 2, fieldNames);
+      const success = module.removeTree(testTree, 2, fieldNames);
       expect(success).toBe(true);
       expect(testTree[0].subNodes).toHaveLength(0);
     });
@@ -1297,14 +1262,14 @@ describe('Tree Processor', () => {
   describe('forEachTree', () => {
     it('应该遍历所有节点并执行回调', () => {
       const result: string[] = [];
-      forEachTree(treeData, (item) => {
+      module.forEachTree(treeData, (item) => {
         result.push(item.name);
       });
       expect(result).toEqual(['node1', 'node2', 'node4', 'node5', 'node3', 'node6']);
     });
 
     it('应该不返回值', () => {
-      const result = forEachTree(treeData, (item) => {
+      const result = module.forEachTree(treeData, (item) => {
         return item.name;
       });
       expect(result).toBeUndefined();
@@ -1315,7 +1280,7 @@ describe('Tree Processor', () => {
         { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] },
       ];
       
-      forEachTree(testTree, (node) => {
+      module.forEachTree(testTree, (node) => {
         node.visited = true;
       });
       
@@ -1325,7 +1290,7 @@ describe('Tree Processor', () => {
 
     it('应该处理空数组', () => {
       const result: string[] = [];
-      forEachTree([], (item) => {
+      module.forEachTree([], (item) => {
         result.push(item.name);
       });
       expect(result).toEqual([]);
@@ -1344,7 +1309,7 @@ describe('Tree Processor', () => {
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
       const result: string[] = [];
       
-      forEachTree(customTree, (item) => {
+      module.forEachTree(customTree, (item) => {
         result.push(item.name);
       }, fieldNames);
       
@@ -1354,20 +1319,20 @@ describe('Tree Processor', () => {
 
   describe('isEmptyTreeData', () => {
     it('应该返回true如果树为空数组', () => {
-      expect(isEmptyTreeData([])).toBe(true);
+      expect(module.isEmptyTreeData([])).toBe(true);
     });
 
     it('应该返回true如果树为null或undefined', () => {
-      expect(isEmptyTreeData(null as any)).toBe(true);
-      expect(isEmptyTreeData(undefined as any)).toBe(true);
+      expect(module.isEmptyTreeData(null as any)).toBe(true);
+      expect(module.isEmptyTreeData(undefined as any)).toBe(true);
     });
 
     it('应该返回false如果树不为空', () => {
-      expect(isEmptyTreeData(treeData)).toBe(false);
+      expect(module.isEmptyTreeData(treeData)).toBe(false);
     });
 
     it('应该返回false如果树有单个节点', () => {
-      expect(isEmptyTreeData([{ id: 1, name: 'root' }])).toBe(false);
+      expect(module.isEmptyTreeData([{ id: 1, name: 'root' }])).toBe(false);
     });
 
     it('应该返回false如果树有多个根节点', () => {
@@ -1375,7 +1340,7 @@ describe('Tree Processor', () => {
         { id: 1, name: 'root1' },
         { id: 2, name: 'root2' },
       ];
-      expect(isEmptyTreeData(multiRoot)).toBe(false);
+      expect(module.isEmptyTreeData(multiRoot)).toBe(false);
     });
 
     it('应该返回false如果树有子节点', () => {
@@ -1385,14 +1350,14 @@ describe('Tree Processor', () => {
           children: [{ id: 2 }],
         },
       ];
-      expect(isEmptyTreeData(treeWithChildren)).toBe(false);
+      expect(module.isEmptyTreeData(treeWithChildren)).toBe(false);
     });
 
     it('应该支持fieldNames参数（虽然不生效，但保持API一致性）', () => {
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
       // fieldNames 参数不生效，只检查数组是否为空
-      expect(isEmptyTreeData([], fieldNames)).toBe(true);
-      expect(isEmptyTreeData(treeData, fieldNames)).toBe(false);
+      expect(module.isEmptyTreeData([], fieldNames)).toBe(true);
+      expect(module.isEmptyTreeData(treeData, fieldNames)).toBe(false);
       
       // 即使传入自定义字段名，结果也应该一致
       const customTree = [
@@ -1401,23 +1366,23 @@ describe('Tree Processor', () => {
           subNodes: [{ nodeId: 2 }],
         },
       ];
-      expect(isEmptyTreeData(customTree, fieldNames)).toBe(false);
-      expect(isEmptyTreeData(customTree)).toBe(false); // 不传 fieldNames 结果相同
+      expect(module.isEmptyTreeData(customTree, fieldNames)).toBe(false);
+      expect(module.isEmptyTreeData(customTree)).toBe(false); // 不传 fieldNames 结果相同
     });
   });
 
   describe('isEmptySingleTreeData', () => {
     it('应该返回true如果数据不是有效的单个树结构', () => {
-      expect(isEmptySingleTreeData(null)).toBe(true);
-      expect(isEmptySingleTreeData(undefined)).toBe(true);
-      expect(isEmptySingleTreeData([])).toBe(true);
-      expect(isEmptySingleTreeData('string')).toBe(true);
-      expect(isEmptySingleTreeData(123)).toBe(true);
+      expect(module.isEmptySingleTreeData(null)).toBe(true);
+      expect(module.isEmptySingleTreeData(undefined)).toBe(true);
+      expect(module.isEmptySingleTreeData([])).toBe(true);
+      expect(module.isEmptySingleTreeData('string')).toBe(true);
+      expect(module.isEmptySingleTreeData(123)).toBe(true);
     });
 
     it('应该返回true如果没有children字段', () => {
       const tree = { id: 1, name: 'node1' };
-      expect(isEmptySingleTreeData(tree)).toBe(true);
+      expect(module.isEmptySingleTreeData(tree)).toBe(true);
     });
 
     it('应该返回true如果children是空数组', () => {
@@ -1426,7 +1391,7 @@ describe('Tree Processor', () => {
         name: 'node1',
         children: [],
       };
-      expect(isEmptySingleTreeData(tree)).toBe(true);
+      expect(module.isEmptySingleTreeData(tree)).toBe(true);
     });
 
     it('应该返回false如果有子节点', () => {
@@ -1437,7 +1402,7 @@ describe('Tree Processor', () => {
           { id: 2, name: 'node2' },
         ],
       };
-      expect(isEmptySingleTreeData(tree)).toBe(false);
+      expect(module.isEmptySingleTreeData(tree)).toBe(false);
     });
 
     it('应该返回false如果有子节点（即使子节点是空的）', () => {
@@ -1450,7 +1415,7 @@ describe('Tree Processor', () => {
           { id: 3, name: 'node3' }, // 没有children字段
         ],
       };
-      expect(isEmptySingleTreeData(treeWithEmptyChildren)).toBe(false);
+      expect(module.isEmptySingleTreeData(treeWithEmptyChildren)).toBe(false);
 
       // 有非空的子节点
       const nonEmptyTree = {
@@ -1465,7 +1430,7 @@ describe('Tree Processor', () => {
           },
         ],
       };
-      expect(isEmptySingleTreeData(nonEmptyTree)).toBe(false);
+      expect(module.isEmptySingleTreeData(nonEmptyTree)).toBe(false);
     });
 
     it('应该支持自定义字段名', () => {
@@ -1475,7 +1440,7 @@ describe('Tree Processor', () => {
         subNodes: [],
       };
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      expect(isEmptySingleTreeData(emptyTree, fieldNames)).toBe(true);
+      expect(module.isEmptySingleTreeData(emptyTree, fieldNames)).toBe(true);
 
       const nonEmptyTree = {
         nodeId: 1,
@@ -1484,7 +1449,7 @@ describe('Tree Processor', () => {
           { nodeId: 2, name: 'node2' },
         ],
       };
-      expect(isEmptySingleTreeData(nonEmptyTree, fieldNames)).toBe(false);
+      expect(module.isEmptySingleTreeData(nonEmptyTree, fieldNames)).toBe(false);
     });
 
     it('应该处理深层嵌套的树（有子节点就不为空）', () => {
@@ -1503,30 +1468,30 @@ describe('Tree Processor', () => {
         ],
       };
       // 即使所有子节点都是空的，只要有子节点，树就不为空
-      expect(isEmptySingleTreeData(deepTree)).toBe(false);
+      expect(module.isEmptySingleTreeData(deepTree)).toBe(false);
     });
   });
 
   describe('getParentTree', () => {
     it('应该返回子节点的父节点', () => {
-      const result = getParentTree(treeData, 2);
+      const result = module.getParentTree(treeData, 2);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(1);
     });
 
     it('应该返回深层节点的父节点', () => {
-      const result = getParentTree(treeData, 4);
+      const result = module.getParentTree(treeData, 4);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(2);
     });
 
     it('应该返回null如果节点是根节点', () => {
-      const result = getParentTree(treeData, 1);
+      const result = module.getParentTree(treeData, 1);
       expect(result).toBeNull();
     });
 
     it('应该返回null如果未找到节点', () => {
-      const result = getParentTree(treeData, 999);
+      const result = module.getParentTree(treeData, 999);
       expect(result).toBeNull();
     });
 
@@ -1535,7 +1500,7 @@ describe('Tree Processor', () => {
         { id: 1, children: [{ id: 2 }] },
         { id: 3, children: [{ id: 4 }] },
       ];
-      const result = getParentTree(multiRoot, 4);
+      const result = module.getParentTree(multiRoot, 4);
       expect(result).not.toBeNull();
       expect(result?.id).toBe(3);
     });
@@ -1550,7 +1515,7 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      const result = getParentTree(customTree, 2, fieldNames);
+      const result = module.getParentTree(customTree, 2, fieldNames);
       expect(result).not.toBeNull();
       expect(result?.nodeId).toBe(1);
     });
@@ -1558,24 +1523,24 @@ describe('Tree Processor', () => {
 
   describe('getChildrenTree', () => {
     it('应该返回节点的所有直接子节点', () => {
-      const children = getChildrenTree(treeData, 1);
+      const children = module.getChildrenTree(treeData, 1);
       expect(children).toHaveLength(2);
       expect(children[0].id).toBe(2);
       expect(children[1].id).toBe(3);
     });
 
     it('应该返回空数组如果节点没有子节点', () => {
-      const children = getChildrenTree(treeData, 4);
+      const children = module.getChildrenTree(treeData, 4);
       expect(children).toEqual([]);
     });
 
     it('应该返回空数组如果未找到节点', () => {
-      const children = getChildrenTree(treeData, 999);
+      const children = module.getChildrenTree(treeData, 999);
       expect(children).toEqual([]);
     });
 
     it('应该处理深层嵌套的节点', () => {
-      const children = getChildrenTree(treeData, 2);
+      const children = module.getChildrenTree(treeData, 2);
       expect(children).toHaveLength(2);
       expect(children[0].id).toBe(4);
       expect(children[1].id).toBe(5);
@@ -1586,7 +1551,7 @@ describe('Tree Processor', () => {
         { id: 1, children: [{ id: 2 }, { id: 3 }] },
         { id: 4, children: [{ id: 5 }] },
       ];
-      const children = getChildrenTree(multiRoot, 1);
+      const children = module.getChildrenTree(multiRoot, 1);
       expect(children).toHaveLength(2);
       expect(children[0].id).toBe(2);
       expect(children[1].id).toBe(3);
@@ -1596,7 +1561,7 @@ describe('Tree Processor', () => {
       const treeWithoutChildren = [
         { id: 1, name: 'node1' },
       ];
-      const children = getChildrenTree(treeWithoutChildren, 1);
+      const children = module.getChildrenTree(treeWithoutChildren, 1);
       expect(children).toEqual([]);
     });
 
@@ -1608,7 +1573,7 @@ describe('Tree Processor', () => {
           children: 'not an array',
         },
       ];
-      const children = getChildrenTree(treeWithInvalidChildren, 1);
+      const children = module.getChildrenTree(treeWithInvalidChildren, 1);
       expect(children).toEqual([]);
     });
 
@@ -1624,20 +1589,20 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      const children = getChildrenTree(customTree, 1, fieldNames);
+      const children = module.getChildrenTree(customTree, 1, fieldNames);
       expect(children).toHaveLength(2);
       expect(children[0].nodeId).toBe(2);
       expect(children[1].nodeId).toBe(3);
     });
 
     it('应该处理空树', () => {
-      const children = getChildrenTree([], 1);
+      const children = module.getChildrenTree([], 1);
       expect(children).toEqual([]);
     });
 
     it('应该处理单节点树', () => {
       const singleNode = [{ id: 1, name: 'node1' }];
-      const children = getChildrenTree(singleNode, 1);
+      const children = module.getChildrenTree(singleNode, 1);
       expect(children).toEqual([]);
     });
 
@@ -1651,7 +1616,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const children = getChildrenTree(unbalancedTree, 1);
+      const children = module.getChildrenTree(unbalancedTree, 1);
       expect(children).toHaveLength(2);
       expect(children[0].id).toBe(2);
       expect(children[1].id).toBe(4);
@@ -1660,7 +1625,7 @@ describe('Tree Processor', () => {
 
   describe('getSiblingsTree', () => {
     it('应该返回节点的所有兄弟节点（包括自己）', () => {
-      const siblings = getSiblingsTree(treeData, 2);
+      const siblings = module.getSiblingsTree(treeData, 2);
       expect(siblings).toHaveLength(2);
       expect(siblings[0].id).toBe(2);
       expect(siblings[1].id).toBe(3);
@@ -1672,7 +1637,7 @@ describe('Tree Processor', () => {
         { id: 3, children: [{ id: 4 }] },
         { id: 5, children: [{ id: 6 }] },
       ];
-      const siblings = getSiblingsTree(multiRoot, 1);
+      const siblings = module.getSiblingsTree(multiRoot, 1);
       expect(siblings).toHaveLength(3);
       expect(siblings[0].id).toBe(1);
       expect(siblings[1].id).toBe(3);
@@ -1680,26 +1645,26 @@ describe('Tree Processor', () => {
     });
 
     it('应该返回空数组如果未找到节点', () => {
-      const siblings = getSiblingsTree(treeData, 999);
+      const siblings = module.getSiblingsTree(treeData, 999);
       expect(siblings).toEqual([]);
     });
 
     it('应该处理深层嵌套的节点', () => {
-      const siblings = getSiblingsTree(treeData, 4);
+      const siblings = module.getSiblingsTree(treeData, 4);
       expect(siblings).toHaveLength(2);
       expect(siblings[0].id).toBe(4);
       expect(siblings[1].id).toBe(5);
     });
 
     it('应该处理只有一个子节点的情况', () => {
-      const siblings = getSiblingsTree(treeData, 6);
+      const siblings = module.getSiblingsTree(treeData, 6);
       expect(siblings).toHaveLength(1);
       expect(siblings[0].id).toBe(6);
     });
 
     it('应该处理单节点树（根节点）', () => {
       const singleNode = [{ id: 1, name: 'node1' }];
-      const siblings = getSiblingsTree(singleNode, 1);
+      const siblings = module.getSiblingsTree(singleNode, 1);
       expect(siblings).toHaveLength(1);
       expect(siblings[0].id).toBe(1);
     });
@@ -1709,7 +1674,7 @@ describe('Tree Processor', () => {
         { id: 1, name: 'node1' },
         { id: 2, name: 'node2' },
       ];
-      const siblings = getSiblingsTree(treeWithoutChildren, 1);
+      const siblings = module.getSiblingsTree(treeWithoutChildren, 1);
       expect(siblings).toHaveLength(2);
       expect(siblings[0].id).toBe(1);
       expect(siblings[1].id).toBe(2);
@@ -1724,7 +1689,7 @@ describe('Tree Processor', () => {
         },
         { id: 2, name: 'node2' },
       ];
-      const siblings = getSiblingsTree(treeWithInvalidChildren, 1);
+      const siblings = module.getSiblingsTree(treeWithInvalidChildren, 1);
       expect(siblings).toHaveLength(2);
     });
 
@@ -1741,7 +1706,7 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      const siblings = getSiblingsTree(customTree, 2, fieldNames);
+      const siblings = module.getSiblingsTree(customTree, 2, fieldNames);
       expect(siblings).toHaveLength(3);
       expect(siblings[0].nodeId).toBe(2);
       expect(siblings[1].nodeId).toBe(3);
@@ -1749,7 +1714,7 @@ describe('Tree Processor', () => {
     });
 
     it('应该处理空树', () => {
-      const siblings = getSiblingsTree([], 1);
+      const siblings = module.getSiblingsTree([], 1);
       expect(siblings).toEqual([]);
     });
 
@@ -1764,7 +1729,7 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const siblings = getSiblingsTree(unbalancedTree, 2);
+      const siblings = module.getSiblingsTree(unbalancedTree, 2);
       expect(siblings).toHaveLength(3);
       expect(siblings[0].id).toBe(2);
       expect(siblings[1].id).toBe(4);
@@ -1775,7 +1740,7 @@ describe('Tree Processor', () => {
       const singleRoot = [
         { id: 1, children: [{ id: 2 }] },
       ];
-      const siblings = getSiblingsTree(singleRoot, 1);
+      const siblings = module.getSiblingsTree(singleRoot, 1);
       expect(siblings).toHaveLength(1);
       expect(siblings[0].id).toBe(1);
     });
@@ -1783,27 +1748,27 @@ describe('Tree Processor', () => {
 
   describe('includesTree', () => {
     it('应该返回true如果树包含指定节点', () => {
-      const result = includesTree(treeData, 2);
+      const result = module.includesTree(treeData, 2);
       expect(result).toBe(true);
     });
 
     it('应该返回true如果树包含深层节点', () => {
-      const result = includesTree(treeData, 4);
+      const result = module.includesTree(treeData, 4);
       expect(result).toBe(true);
     });
 
     it('应该返回true如果树包含根节点', () => {
-      const result = includesTree(treeData, 1);
+      const result = module.includesTree(treeData, 1);
       expect(result).toBe(true);
     });
 
     it('应该返回false如果树不包含指定节点', () => {
-      const result = includesTree(treeData, 999);
+      const result = module.includesTree(treeData, 999);
       expect(result).toBe(false);
     });
 
     it('应该处理空树', () => {
-      const result = includesTree([], 1);
+      const result = module.includesTree([], 1);
       expect(result).toBe(false);
     });
 
@@ -1813,8 +1778,8 @@ describe('Tree Processor', () => {
         { id: 2, name: 'root2' },
         { id: 3, name: 'root3' },
       ];
-      expect(includesTree(multiRoot, 2)).toBe(true);
-      expect(includesTree(multiRoot, 4)).toBe(false);
+      expect(module.includesTree(multiRoot, 2)).toBe(true);
+      expect(module.includesTree(multiRoot, 4)).toBe(false);
     });
 
     it('应该支持自定义字段名', () => {
@@ -1827,8 +1792,8 @@ describe('Tree Processor', () => {
         },
       ];
       const fieldNames = { children: 'subNodes', id: 'nodeId' };
-      expect(includesTree(customTree, 2, fieldNames)).toBe(true);
-      expect(includesTree(customTree, 999, fieldNames)).toBe(false);
+      expect(module.includesTree(customTree, 2, fieldNames)).toBe(true);
+      expect(module.includesTree(customTree, 999, fieldNames)).toBe(false);
     });
 
     it('应该处理特殊ID值', () => {
@@ -1837,9 +1802,9 @@ describe('Tree Processor', () => {
         { id: false, name: 'false' },
         { id: '', name: 'empty' },
       ];
-      expect(includesTree(treeWithSpecialIds, 0)).toBe(true);
-      expect(includesTree(treeWithSpecialIds, false)).toBe(true);
-      expect(includesTree(treeWithSpecialIds, '')).toBe(true);
+      expect(module.includesTree(treeWithSpecialIds, 0)).toBe(true);
+      expect(module.includesTree(treeWithSpecialIds, false)).toBe(true);
+      expect(module.includesTree(treeWithSpecialIds, '')).toBe(true);
     });
   });
 
@@ -1854,7 +1819,7 @@ describe('Tree Processor', () => {
             { id: 3, name: 'node3' },
           ],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
 
       it('应该识别没有子节点的树结构', () => {
@@ -1862,7 +1827,7 @@ describe('Tree Processor', () => {
           id: 1,
           name: 'node1',
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
 
       it('应该识别深层嵌套的树结构', () => {
@@ -1883,7 +1848,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
 
       it('应该识别空 children 数组的树结构', () => {
@@ -1892,37 +1857,37 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isSingleTreeData(null)).toBe(false);
+        expect(module.isSingleTreeData(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isSingleTreeData(undefined)).toBe(false);
+        expect(module.isSingleTreeData(undefined)).toBe(false);
       });
 
       it('应该拒绝数组', () => {
-        expect(isSingleTreeData([{ id: 1 }])).toBe(false);
+        expect(module.isSingleTreeData([{ id: 1 }])).toBe(false);
       });
 
       it('应该拒绝基本类型（字符串）', () => {
-        expect(isSingleTreeData('string')).toBe(false);
+        expect(module.isSingleTreeData('string')).toBe(false);
       });
 
       it('应该拒绝基本类型（数字）', () => {
-        expect(isSingleTreeData(123)).toBe(false);
+        expect(module.isSingleTreeData(123)).toBe(false);
       });
 
       it('应该拒绝基本类型（布尔值）', () => {
-        expect(isSingleTreeData(true)).toBe(false);
+        expect(module.isSingleTreeData(true)).toBe(false);
       });
 
       it('应该拒绝空对象（没有 children 字段）', () => {
-        expect(isSingleTreeData({})).toBe(true); // 空对象也是有效的树结构
+        expect(module.isSingleTreeData({})).toBe(true); // 空对象也是有效的树结构
       });
 
       it('应该拒绝 children 不是数组的对象', () => {
@@ -1930,7 +1895,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: 'not an array',
         };
-        expect(isSingleTreeData(invalidTree)).toBe(false);
+        expect(module.isSingleTreeData(invalidTree)).toBe(false);
       });
 
       it('应该拒绝 children 是 null 的对象', () => {
@@ -1938,7 +1903,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: null,
         };
-        expect(isSingleTreeData(invalidTree)).toBe(false);
+        expect(module.isSingleTreeData(invalidTree)).toBe(false);
       });
 
       it('应该拒绝包含非树结构子节点的对象', () => {
@@ -1949,7 +1914,7 @@ describe('Tree Processor', () => {
             'not a tree node', // 无效的子节点
           ],
         };
-        expect(isSingleTreeData(invalidTree)).toBe(false);
+        expect(module.isSingleTreeData(invalidTree)).toBe(false);
       });
 
       it('应该拒绝包含数组子节点的对象', () => {
@@ -1960,7 +1925,7 @@ describe('Tree Processor', () => {
             [{ id: 3, name: 'node3' }], // 数组不是有效的树节点
           ],
         };
-        expect(isSingleTreeData(invalidTree)).toBe(false);
+        expect(module.isSingleTreeData(invalidTree)).toBe(false);
       });
     });
 
@@ -1975,7 +1940,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: 'subNodes', id: 'id' };
-        expect(isSingleTreeData(tree, fieldNames)).toBe(true);
+        expect(module.isSingleTreeData(tree, fieldNames)).toBe(true);
       });
 
       it('应该支持中文字段名', () => {
@@ -1987,7 +1952,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: '子节点', id: 'id' };
-        expect(isSingleTreeData(tree, fieldNames)).toBe(true);
+        expect(module.isSingleTreeData(tree, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名且递归检查子节点', () => {
@@ -2005,7 +1970,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isSingleTreeData(tree, fieldNames)).toBe(true);
+        expect(module.isSingleTreeData(tree, fieldNames)).toBe(true);
       });
 
       it('应该在使用自定义字段名时拒绝无效结构', () => {
@@ -2014,7 +1979,7 @@ describe('Tree Processor', () => {
           subNodes: 'not an array',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isSingleTreeData(invalidTree, fieldNames)).toBe(false);
+        expect(module.isSingleTreeData(invalidTree, fieldNames)).toBe(false);
       });
     });
 
@@ -2036,7 +2001,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
 
       it('应该处理不平衡树结构', () => {
@@ -2052,7 +2017,7 @@ describe('Tree Processor', () => {
             { id: 5 }, // 没有子节点
           ],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
 
       it('应该处理单分支树（每个节点只有一个子节点）', () => {
@@ -2070,7 +2035,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isSingleTreeData(tree)).toBe(true);
+        expect(module.isSingleTreeData(tree)).toBe(true);
       });
     });
   });
@@ -2092,7 +2057,7 @@ describe('Tree Processor', () => {
             children: [{ id: 4, name: 'node4' }],
           },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
 
       it('应该识别包含单棵树的森林', () => {
@@ -2105,11 +2070,11 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
 
       it('应该识别空数组（空森林）', () => {
-        expect(isTreeData([])).toBe(true);
+        expect(module.isTreeData([])).toBe(true);
       });
 
       it('应该识别包含没有子节点的树的森林', () => {
@@ -2118,7 +2083,7 @@ describe('Tree Processor', () => {
           { id: 2, name: 'node2' },
           { id: 3, name: 'node3' },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
 
       it('应该识别深层嵌套的森林', () => {
@@ -2142,17 +2107,17 @@ describe('Tree Processor', () => {
             children: [{ id: 6 }],
           },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isTreeData(null)).toBe(false);
+        expect(module.isTreeData(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isTreeData(undefined)).toBe(false);
+        expect(module.isTreeData(undefined)).toBe(false);
       });
 
       it('应该拒绝非数组类型（对象）', () => {
@@ -2160,15 +2125,15 @@ describe('Tree Processor', () => {
           id: 1,
           children: [{ id: 2 }],
         };
-        expect(isTreeData(tree)).toBe(false);
+        expect(module.isTreeData(tree)).toBe(false);
       });
 
       it('应该拒绝非数组类型（字符串）', () => {
-        expect(isTreeData('string')).toBe(false);
+        expect(module.isTreeData('string')).toBe(false);
       });
 
       it('应该拒绝非数组类型（数字）', () => {
-        expect(isTreeData(123)).toBe(false);
+        expect(module.isTreeData(123)).toBe(false);
       });
 
       it('应该拒绝包含非树结构元素的数组', () => {
@@ -2176,7 +2141,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           'not a tree', // 无效元素
         ];
-        expect(isTreeData(invalidForest)).toBe(false);
+        expect(module.isTreeData(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含数组元素的数组', () => {
@@ -2184,7 +2149,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           [{ id: 3 }], // 数组不是树结构
         ];
-        expect(isTreeData(invalidForest)).toBe(false);
+        expect(module.isTreeData(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含 null 元素的数组', () => {
@@ -2192,7 +2157,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           null,
         ];
-        expect(isTreeData(invalidForest)).toBe(false);
+        expect(module.isTreeData(invalidForest)).toBe(false);
       });
 
       it('应该拒绝包含无效树结构的数组', () => {
@@ -2200,7 +2165,7 @@ describe('Tree Processor', () => {
           { id: 1, children: [{ id: 2 }] },
           { id: 3, children: 'not an array' }, // 无效的树结构
         ];
-        expect(isTreeData(invalidForest)).toBe(false);
+        expect(module.isTreeData(invalidForest)).toBe(false);
       });
     });
 
@@ -2221,7 +2186,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'id' };
-        expect(isTreeData(forest, fieldNames)).toBe(true);
+        expect(module.isTreeData(forest, fieldNames)).toBe(true);
       });
 
       it('应该支持中文字段名', () => {
@@ -2235,7 +2200,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: '子节点', id: 'id' };
-        expect(isTreeData(forest, fieldNames)).toBe(true);
+        expect(module.isTreeData(forest, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名且递归检查所有树', () => {
@@ -2258,7 +2223,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTreeData(forest, fieldNames)).toBe(true);
+        expect(module.isTreeData(forest, fieldNames)).toBe(true);
       });
 
       it('应该在使用自定义字段名时拒绝无效结构', () => {
@@ -2273,7 +2238,7 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTreeData(invalidForest, fieldNames)).toBe(false);
+        expect(module.isTreeData(invalidForest, fieldNames)).toBe(false);
       });
     });
 
@@ -2297,7 +2262,7 @@ describe('Tree Processor', () => {
             children: [{ id: 7 }, { id: 8 }],
           },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
 
       it('应该处理包含各种数据类型的森林', () => {
@@ -2317,7 +2282,7 @@ describe('Tree Processor', () => {
             children: [{ id: 3 }],
           },
         ];
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
 
       it('应该处理大型森林（多棵树）', () => {
@@ -2328,7 +2293,7 @@ describe('Tree Processor', () => {
             { id: (i + 1) * 10 + 2 },
           ],
         }));
-        expect(isTreeData(forest)).toBe(true);
+        expect(module.isTreeData(forest)).toBe(true);
       });
     });
   });
@@ -2341,7 +2306,7 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [{ id: 2 }],
         };
-        expect(isValidTreeNode(node)).toBe(true);
+        expect(module.isValidTreeNode(node)).toBe(true);
       });
 
       it('应该识别有效的树节点（没有 children 字段）', () => {
@@ -2349,7 +2314,7 @@ describe('Tree Processor', () => {
           id: 1,
           name: 'node1',
         };
-        expect(isValidTreeNode(node)).toBe(true);
+        expect(module.isValidTreeNode(node)).toBe(true);
       });
 
       it('应该识别有效的树节点（children 是空数组）', () => {
@@ -2358,33 +2323,33 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [],
         };
-        expect(isValidTreeNode(node)).toBe(true);
+        expect(module.isValidTreeNode(node)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isValidTreeNode(null)).toBe(false);
+        expect(module.isValidTreeNode(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isValidTreeNode(undefined)).toBe(false);
+        expect(module.isValidTreeNode(undefined)).toBe(false);
       });
 
       it('应该拒绝数组', () => {
-        expect(isValidTreeNode([{ id: 1 }])).toBe(false);
+        expect(module.isValidTreeNode([{ id: 1 }])).toBe(false);
       });
 
       it('应该拒绝基本类型（字符串）', () => {
-        expect(isValidTreeNode('string')).toBe(false);
+        expect(module.isValidTreeNode('string')).toBe(false);
       });
 
       it('应该拒绝基本类型（数字）', () => {
-        expect(isValidTreeNode(123)).toBe(false);
+        expect(module.isValidTreeNode(123)).toBe(false);
       });
 
       it('应该拒绝基本类型（布尔值）', () => {
-        expect(isValidTreeNode(true)).toBe(false);
+        expect(module.isValidTreeNode(true)).toBe(false);
       });
 
       it('应该拒绝 children 是 null 的对象', () => {
@@ -2392,7 +2357,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: null,
         };
-        expect(isValidTreeNode(invalidNode)).toBe(false);
+        expect(module.isValidTreeNode(invalidNode)).toBe(false);
       });
 
       it('应该拒绝 children 不是数组的对象', () => {
@@ -2400,11 +2365,11 @@ describe('Tree Processor', () => {
           id: 1,
           children: 'not an array',
         };
-        expect(isValidTreeNode(invalidNode)).toBe(false);
+        expect(module.isValidTreeNode(invalidNode)).toBe(false);
       });
 
       it('应该接受空对象', () => {
-        expect(isValidTreeNode({})).toBe(true);
+        expect(module.isValidTreeNode({})).toBe(true);
       });
     });
 
@@ -2416,7 +2381,7 @@ describe('Tree Processor', () => {
           subNodes: [{ nodeId: 2 }],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isValidTreeNode(node, fieldNames)).toBe(true);
+        expect(module.isValidTreeNode(node, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名且没有 children 字段', () => {
@@ -2425,7 +2390,7 @@ describe('Tree Processor', () => {
           name: 'node1',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isValidTreeNode(node, fieldNames)).toBe(true);
+        expect(module.isValidTreeNode(node, fieldNames)).toBe(true);
       });
 
       it('应该拒绝自定义字段名但 children 不是数组', () => {
@@ -2434,7 +2399,7 @@ describe('Tree Processor', () => {
           subNodes: 'not an array',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isValidTreeNode(node, fieldNames)).toBe(false);
+        expect(module.isValidTreeNode(node, fieldNames)).toBe(false);
       });
     });
   });
@@ -2450,7 +2415,7 @@ describe('Tree Processor', () => {
             { id: 3, name: 'node3' },
           ],
         };
-        expect(isTreeNodeWithCircularCheck(node)).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck(node)).toBe(true);
       });
 
       it('应该识别有效的树节点（没有 children 字段）', () => {
@@ -2458,7 +2423,7 @@ describe('Tree Processor', () => {
           id: 1,
           name: 'node1',
         };
-        expect(isTreeNodeWithCircularCheck(node)).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck(node)).toBe(true);
       });
 
       it('应该识别有效的树节点（children 是空数组）', () => {
@@ -2467,7 +2432,7 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [],
         };
-        expect(isTreeNodeWithCircularCheck(node)).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck(node)).toBe(true);
       });
 
       it('应该识别深层嵌套的有效树节点', () => {
@@ -2485,7 +2450,7 @@ describe('Tree Processor', () => {
             },
           ],
         };
-        expect(isTreeNodeWithCircularCheck(node)).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck(node)).toBe(true);
       });
     });
 
@@ -2496,7 +2461,7 @@ describe('Tree Processor', () => {
         node1.children.push(node2);
         node2.children.push(node1); // 循环引用
 
-        expect(isTreeNodeWithCircularCheck(node1)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node1)).toBe(false);
       });
 
       it('应该检测到间接循环引用', () => {
@@ -2507,14 +2472,14 @@ describe('Tree Processor', () => {
         node2.children.push(node3);
         node3.children.push(node1); // 间接循环引用
 
-        expect(isTreeNodeWithCircularCheck(node1)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node1)).toBe(false);
       });
 
       it('应该检测到自引用', () => {
         const node: any = { id: 1, children: [] };
         node.children.push(node); // 自引用
 
-        expect(isTreeNodeWithCircularCheck(node)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node)).toBe(false);
       });
 
       it('应该检测到深层循环引用', () => {
@@ -2527,29 +2492,29 @@ describe('Tree Processor', () => {
         node3.children.push(node4);
         node4.children.push(node2); // 深层循环引用
 
-        expect(isTreeNodeWithCircularCheck(node1)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node1)).toBe(false);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 null', () => {
-        expect(isTreeNodeWithCircularCheck(null)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(null)).toBe(false);
       });
 
       it('应该拒绝 undefined', () => {
-        expect(isTreeNodeWithCircularCheck(undefined)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(undefined)).toBe(false);
       });
 
       it('应该拒绝数组', () => {
-        expect(isTreeNodeWithCircularCheck([{ id: 1 }])).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck([{ id: 1 }])).toBe(false);
       });
 
       it('应该拒绝基本类型（字符串）', () => {
-        expect(isTreeNodeWithCircularCheck('string')).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck('string')).toBe(false);
       });
 
       it('应该拒绝基本类型（数字）', () => {
-        expect(isTreeNodeWithCircularCheck(123)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(123)).toBe(false);
       });
 
       it('应该拒绝 children 是 null 的对象', () => {
@@ -2557,7 +2522,7 @@ describe('Tree Processor', () => {
           id: 1,
           children: null,
         };
-        expect(isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
       });
 
       it('应该拒绝 children 不是数组的对象', () => {
@@ -2565,11 +2530,11 @@ describe('Tree Processor', () => {
           id: 1,
           children: 'not an array',
         };
-        expect(isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
       });
 
       it('应该接受空对象', () => {
-        expect(isTreeNodeWithCircularCheck({})).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck({})).toBe(true);
       });
 
       it('应该拒绝包含非树结构子节点的对象', () => {
@@ -2580,7 +2545,7 @@ describe('Tree Processor', () => {
             'not a tree node', // 无效的子节点
           ],
         };
-        expect(isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(invalidNode)).toBe(false);
       });
     });
 
@@ -2594,7 +2559,7 @@ describe('Tree Processor', () => {
           ],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTreeNodeWithCircularCheck(node, fieldNames)).toBe(true);
+        expect(module.isTreeNodeWithCircularCheck(node, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名检测循环引用', () => {
@@ -2610,7 +2575,7 @@ describe('Tree Processor', () => {
         node2.subNodes.push(node1); // 循环引用
 
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTreeNodeWithCircularCheck(node1, fieldNames)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node1, fieldNames)).toBe(false);
       });
 
       it('应该拒绝自定义字段名但 children 不是数组', () => {
@@ -2619,7 +2584,7 @@ describe('Tree Processor', () => {
           subNodes: 'not an array',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isTreeNodeWithCircularCheck(node, fieldNames)).toBe(false);
+        expect(module.isTreeNodeWithCircularCheck(node, fieldNames)).toBe(false);
       });
     });
   });
@@ -2635,7 +2600,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isSafeTreeDepth(tree, 10)).toBe(true);
+        expect(module.isSafeTreeDepth(tree, 10)).toBe(true);
       });
 
       it('应该识别深度刚好等于最大深度的树', () => {
@@ -2647,7 +2612,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isSafeTreeDepth(tree, 3)).toBe(true);
+        expect(module.isSafeTreeDepth(tree, 3)).toBe(true);
       });
 
       it('应该识别深度超过最大深度的树', () => {
@@ -2659,7 +2624,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isSafeTreeDepth(tree, 2)).toBe(false);
+        expect(module.isSafeTreeDepth(tree, 2)).toBe(false);
       });
 
       it('应该识别单层树为安全', () => {
@@ -2667,23 +2632,23 @@ describe('Tree Processor', () => {
           { id: 1 },
           { id: 2 },
         ];
-        expect(isSafeTreeDepth(tree, 1)).toBe(true);
+        expect(module.isSafeTreeDepth(tree, 1)).toBe(true);
       });
 
       it('应该识别空树为安全', () => {
-        expect(isSafeTreeDepth([], 10)).toBe(true);
+        expect(module.isSafeTreeDepth([], 10)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该拒绝 maxDepth 为 0', () => {
         const tree = [{ id: 1 }];
-        expect(isSafeTreeDepth(tree, 0)).toBe(false);
+        expect(module.isSafeTreeDepth(tree, 0)).toBe(false);
       });
 
       it('应该拒绝 maxDepth 为负数', () => {
         const tree = [{ id: 1 }];
-        expect(isSafeTreeDepth(tree, -1)).toBe(false);
+        expect(module.isSafeTreeDepth(tree, -1)).toBe(false);
       });
 
       it('应该处理深层嵌套的树', () => {
@@ -2693,8 +2658,8 @@ describe('Tree Processor', () => {
           current.children = [{ id: i }];
           current = current.children[0];
         }
-        expect(isSafeTreeDepth([tree], 10)).toBe(true);
-        expect(isSafeTreeDepth([tree], 9)).toBe(false);
+        expect(module.isSafeTreeDepth([tree], 10)).toBe(true);
+        expect(module.isSafeTreeDepth([tree], 9)).toBe(false);
       });
 
       it('应该处理不平衡树', () => {
@@ -2712,8 +2677,8 @@ describe('Tree Processor', () => {
           },
           { id: 5 },
         ];
-        expect(isSafeTreeDepth(tree, 4)).toBe(true);
-        expect(isSafeTreeDepth(tree, 3)).toBe(false);
+        expect(module.isSafeTreeDepth(tree, 4)).toBe(true);
+        expect(module.isSafeTreeDepth(tree, 3)).toBe(false);
       });
 
       it('应该处理多棵树的森林', () => {
@@ -2732,8 +2697,8 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isSafeTreeDepth(forest, 3)).toBe(true);
-        expect(isSafeTreeDepth(forest, 2)).toBe(false);
+        expect(module.isSafeTreeDepth(forest, 3)).toBe(true);
+        expect(module.isSafeTreeDepth(forest, 2)).toBe(false);
       });
     });
 
@@ -2748,8 +2713,8 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isSafeTreeDepth(tree, 3, fieldNames)).toBe(true);
-        expect(isSafeTreeDepth(tree, 2, fieldNames)).toBe(false);
+        expect(module.isSafeTreeDepth(tree, 3, fieldNames)).toBe(true);
+        expect(module.isSafeTreeDepth(tree, 2, fieldNames)).toBe(false);
       });
 
       it('应该支持自定义字段名处理深层树', () => {
@@ -2760,8 +2725,8 @@ describe('Tree Processor', () => {
           current = current.subNodes[0];
         }
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isSafeTreeDepth([tree], 5, fieldNames)).toBe(true);
-        expect(isSafeTreeDepth([tree], 4, fieldNames)).toBe(false);
+        expect(module.isSafeTreeDepth([tree], 5, fieldNames)).toBe(true);
+        expect(module.isSafeTreeDepth([tree], 4, fieldNames)).toBe(false);
       });
     });
   });
@@ -2770,12 +2735,12 @@ describe('Tree Processor', () => {
     describe('基础功能', () => {
       it('应该识别没有 children 字段的节点为叶子节点', () => {
         const node = { id: 1, name: 'node1' };
-        expect(isLeafNode(node)).toBe(true);
+        expect(module.isLeafNode(node)).toBe(true);
       });
 
       it('应该识别 children 为空数组的节点为叶子节点', () => {
         const node = { id: 1, name: 'node1', children: [] };
-        expect(isLeafNode(node)).toBe(true);
+        expect(module.isLeafNode(node)).toBe(true);
       });
 
       it('应该识别有子节点的节点不是叶子节点', () => {
@@ -2784,28 +2749,28 @@ describe('Tree Processor', () => {
           name: 'node1',
           children: [{ id: 2, name: 'node2' }],
         };
-        expect(isLeafNode(node)).toBe(false);
+        expect(module.isLeafNode(node)).toBe(false);
       });
 
       it('应该识别 children 为 undefined 的节点为叶子节点', () => {
         const node = { id: 1, name: 'node1', children: undefined };
-        expect(isLeafNode(node)).toBe(true);
+        expect(module.isLeafNode(node)).toBe(true);
       });
     });
 
     describe('边界情况', () => {
       it('应该处理空对象', () => {
-        expect(isLeafNode({})).toBe(true);
+        expect(module.isLeafNode({})).toBe(true);
       });
 
       it('应该处理 children 为 null 的节点（视为叶子节点）', () => {
         const node = { id: 1, children: null };
-        expect(isLeafNode(node)).toBe(true);
+        expect(module.isLeafNode(node)).toBe(true);
       });
 
       it('应该处理 children 不是数组的节点（视为叶子节点）', () => {
         const node = { id: 1, children: 'not an array' };
-        expect(isLeafNode(node)).toBe(true);
+        expect(module.isLeafNode(node)).toBe(true);
       });
 
       it('应该处理有多个子节点的节点', () => {
@@ -2817,7 +2782,7 @@ describe('Tree Processor', () => {
             { id: 4 },
           ],
         };
-        expect(isLeafNode(node)).toBe(false);
+        expect(module.isLeafNode(node)).toBe(false);
       });
     });
 
@@ -2829,7 +2794,7 @@ describe('Tree Processor', () => {
           subNodes: [],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isLeafNode(node, fieldNames)).toBe(true);
+        expect(module.isLeafNode(node, fieldNames)).toBe(true);
       });
 
       it('应该支持自定义字段名识别有子节点的节点', () => {
@@ -2839,7 +2804,7 @@ describe('Tree Processor', () => {
           subNodes: [{ nodeId: 2 }],
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isLeafNode(node, fieldNames)).toBe(false);
+        expect(module.isLeafNode(node, fieldNames)).toBe(false);
       });
 
       it('应该支持自定义字段名识别没有 children 字段的节点', () => {
@@ -2848,7 +2813,7 @@ describe('Tree Processor', () => {
           name: 'node1',
         };
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isLeafNode(node, fieldNames)).toBe(true);
+        expect(module.isLeafNode(node, fieldNames)).toBe(true);
       });
     });
 
@@ -2864,7 +2829,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const leafNodes = filterTree(treeData, (node) => isLeafNode(node));
+        const leafNodes = module.filterTree(treeData, (node) => module.isLeafNode(node));
         expect(leafNodes).toHaveLength(2);
         expect(leafNodes[0].id).toBe(2);
         expect(leafNodes[1].id).toBe(3);
@@ -2879,8 +2844,8 @@ describe('Tree Processor', () => {
           },
         ];
         const leafNodeIds: number[] = [];
-        forEachTree(treeData, (node) => {
-          if (isLeafNode(node)) {
+        module.forEachTree(treeData, (node) => {
+          if (module.isLeafNode(node)) {
             leafNodeIds.push(node.id);
           }
         });
@@ -2899,7 +2864,7 @@ describe('Tree Processor', () => {
             children: [{ id: 2, name: 'node2' }],
           },
         ];
-        expect(isRootNode(treeData, 1)).toBe(true);
+        expect(module.isRootNode(treeData, 1)).toBe(true);
       });
 
       it('应该识别非根节点', () => {
@@ -2910,7 +2875,7 @@ describe('Tree Processor', () => {
             children: [{ id: 2, name: 'node2' }],
           },
         ];
-        expect(isRootNode(treeData, 2)).toBe(false);
+        expect(module.isRootNode(treeData, 2)).toBe(false);
       });
 
       it('应该识别多个根节点', () => {
@@ -2919,9 +2884,9 @@ describe('Tree Processor', () => {
           { id: 2, name: 'root2' },
           { id: 3, name: 'root3' },
         ];
-        expect(isRootNode(treeData, 1)).toBe(true);
-        expect(isRootNode(treeData, 2)).toBe(true);
-        expect(isRootNode(treeData, 3)).toBe(true);
+        expect(module.isRootNode(treeData, 1)).toBe(true);
+        expect(module.isRootNode(treeData, 2)).toBe(true);
+        expect(module.isRootNode(treeData, 3)).toBe(true);
       });
 
       it('应该识别深层节点不是根节点', () => {
@@ -2938,26 +2903,26 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        expect(isRootNode(treeData, 1)).toBe(true);
-        expect(isRootNode(treeData, 2)).toBe(false);
-        expect(isRootNode(treeData, 3)).toBe(false);
-        expect(isRootNode(treeData, 4)).toBe(false);
+        expect(module.isRootNode(treeData, 1)).toBe(true);
+        expect(module.isRootNode(treeData, 2)).toBe(false);
+        expect(module.isRootNode(treeData, 3)).toBe(false);
+        expect(module.isRootNode(treeData, 4)).toBe(false);
       });
     });
 
     describe('边界情况', () => {
       it('应该处理空树', () => {
-        expect(isRootNode([], 1)).toBe(false);
+        expect(module.isRootNode([], 1)).toBe(false);
       });
 
       it('应该处理不存在的节点', () => {
         const treeData = [{ id: 1, name: 'node1' }];
-        expect(isRootNode(treeData, 999)).toBe(false);
+        expect(module.isRootNode(treeData, 999)).toBe(false);
       });
 
       it('应该处理单节点树', () => {
         const treeData = [{ id: 1, name: 'node1' }];
-        expect(isRootNode(treeData, 1)).toBe(true);
+        expect(module.isRootNode(treeData, 1)).toBe(true);
       });
 
       it('应该处理只有根节点的树', () => {
@@ -2965,8 +2930,8 @@ describe('Tree Processor', () => {
           { id: 1, name: 'root1' },
           { id: 2, name: 'root2' },
         ];
-        expect(isRootNode(treeData, 1)).toBe(true);
-        expect(isRootNode(treeData, 2)).toBe(true);
+        expect(module.isRootNode(treeData, 1)).toBe(true);
+        expect(module.isRootNode(treeData, 2)).toBe(true);
       });
     });
 
@@ -2982,8 +2947,8 @@ describe('Tree Processor', () => {
           },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isRootNode(treeData, 1, fieldNames)).toBe(true);
-        expect(isRootNode(treeData, 2, fieldNames)).toBe(false);
+        expect(module.isRootNode(treeData, 1, fieldNames)).toBe(true);
+        expect(module.isRootNode(treeData, 2, fieldNames)).toBe(false);
       });
 
       it('应该支持自定义字段名处理多个根节点', () => {
@@ -2992,8 +2957,8 @@ describe('Tree Processor', () => {
           { nodeId: 2, name: 'root2' },
         ];
         const fieldNames = { children: 'subNodes', id: 'nodeId' };
-        expect(isRootNode(treeData, 1, fieldNames)).toBe(true);
-        expect(isRootNode(treeData, 2, fieldNames)).toBe(true);
+        expect(module.isRootNode(treeData, 1, fieldNames)).toBe(true);
+        expect(module.isRootNode(treeData, 2, fieldNames)).toBe(true);
       });
     });
 
@@ -3008,8 +2973,8 @@ describe('Tree Processor', () => {
           { id: 3, name: 'root2' },
         ];
         const rootNodeIds: number[] = [];
-        forEachTree(treeData, (node) => {
-          if (isRootNode(treeData, node.id)) {
+        module.forEachTree(treeData, (node) => {
+          if (module.isRootNode(treeData, node.id)) {
             rootNodeIds.push(node.id);
           }
         });
@@ -3023,22 +2988,22 @@ describe('Tree Processor', () => {
             children: [{ id: 2, children: [{ id: 3 }] }],
           },
         ];
-        expect(isRootNode(treeData, 1)).toBe(getParentTree(treeData, 1) === null);
-        expect(isRootNode(treeData, 2)).toBe(getParentTree(treeData, 2) === null);
-        expect(isRootNode(treeData, 3)).toBe(getParentTree(treeData, 3) === null);
+        expect(module.isRootNode(treeData, 1)).toBe(module.getParentTree(treeData, 1) === null);
+        expect(module.isRootNode(treeData, 2)).toBe(module.getParentTree(treeData, 2) === null);
+        expect(module.isRootNode(treeData, 3)).toBe(module.getParentTree(treeData, 3) === null);
       });
     });
 
     describe('convertToArrayTree', () => {
       it('应该将树结构扁平化为数组', () => {
-        const result = convertToArrayTree(treeData);
+        const result = module.convertToArrayTree(treeData);
         expect(result).toHaveLength(6);
         expect(result.map((n) => n.id)).toEqual([1, 2, 4, 5, 3, 6]);
         expect(result.map((n) => n.name)).toEqual(['node1', 'node2', 'node4', 'node5', 'node3', 'node6']);
       });
 
       it('应该移除 children 字段', () => {
-        const result = convertToArrayTree(treeData);
+        const result = module.convertToArrayTree(treeData);
         result.forEach((node) => {
           expect(node).not.toHaveProperty('children');
         });
@@ -3056,7 +3021,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToArrayTree(customTree);
+        const result = module.convertToArrayTree(customTree);
         expect(result[0]).toHaveProperty('id', 1);
         expect(result[0]).toHaveProperty('name', 'node1');
         expect(result[0]).toHaveProperty('value', 100);
@@ -3069,7 +3034,7 @@ describe('Tree Processor', () => {
       });
 
       it('应该处理空树', () => {
-        const result = convertToArrayTree([]);
+        const result = module.convertToArrayTree([]);
         expect(result).toEqual([]);
       });
 
@@ -3078,7 +3043,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' },
           { id: 2, name: 'node2' },
         ];
-        const result = convertToArrayTree(singleTree);
+        const result = module.convertToArrayTree(singleTree);
         expect(result).toHaveLength(2);
         expect(result[0]).not.toHaveProperty('children');
         expect(result[1]).not.toHaveProperty('children');
@@ -3094,7 +3059,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToArrayTree(customTree, {
+        const result = module.convertToArrayTree(customTree, {
           children: 'subNodes',
           id: 'nodeId',
         });
@@ -3108,7 +3073,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', children: null },
           { id: 2, name: 'node2', children: undefined },
         ];
-        const result = convertToArrayTree(treeWithNull);
+        const result = module.convertToArrayTree(treeWithNull);
         expect(result).toHaveLength(2);
         expect(result[0]).not.toHaveProperty('children');
         expect(result[1]).not.toHaveProperty('children');
@@ -3136,7 +3101,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToArrayTree(deepTree);
+        const result = module.convertToArrayTree(deepTree);
         expect(result).toHaveLength(4);
         expect(result.map((n) => n.name)).toEqual(['level1', 'level2', 'level3', 'level4']);
       });
@@ -3146,7 +3111,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' },
           { id: 2, name: 'node2' },
         ];
-        const result = convertToArrayTree(treeWithoutChildren);
+        const result = module.convertToArrayTree(treeWithoutChildren);
         expect(result).toHaveLength(2);
         expect(result[0]).not.toHaveProperty('children');
       });
@@ -3162,7 +3127,7 @@ describe('Tree Processor', () => {
           { id: 5, name: 'node5', parentId: 2 },
           { id: 6, name: 'node6', parentId: 3 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
         expect(result[0].children).toHaveLength(2);
@@ -3179,7 +3144,7 @@ describe('Tree Processor', () => {
           { id: 3, name: 'child1', parentId: 1 },
           { id: 4, name: 'child2', parentId: 2 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(2);
         expect(result[0].id).toBe(1);
         expect(result[1].id).toBe(2);
@@ -3188,7 +3153,7 @@ describe('Tree Processor', () => {
       });
 
       it('应该处理空数组', () => {
-        const result = convertBackTree([]);
+        const result = module.convertBackTree([]);
         expect(result).toEqual([]);
       });
 
@@ -3198,7 +3163,7 @@ describe('Tree Processor', () => {
           { name: 'node2', parentId: 1 }, // 没有 id
           { id: 3, name: 'node3', parentId: 1 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(1);
         expect(result[0].children).toHaveLength(1);
         expect(result[0].children[0].id).toBe(3);
@@ -3209,7 +3174,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', parentId: 999 }, // 父节点不存在
           { id: 2, name: 'node2', parentId: null },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(2); // 两个都作为根节点
         expect(result[0].id).toBe(1);
         expect(result[1].id).toBe(2);
@@ -3220,7 +3185,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', parentId: 0 },
           { id: 2, name: 'node2', parentId: 1 },
         ];
-        const result = convertBackTree(array, { rootParentId: 0 });
+        const result = module.convertBackTree(array, { rootParentId: 0 });
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
         expect(result[0].children).toHaveLength(1);
@@ -3231,7 +3196,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', pid: null },
           { id: 2, name: 'node2', pid: 1 },
         ];
-        const result = convertBackTree(array, { parentIdField: 'pid' });
+        const result = module.convertBackTree(array, { parentIdField: 'pid' });
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
         expect(result[0].children).toHaveLength(1);
@@ -3242,7 +3207,7 @@ describe('Tree Processor', () => {
           { nodeId: 1, name: 'node1', parentId: null },
           { nodeId: 2, name: 'node2', parentId: 1 },
         ];
-        const result = convertBackTree(array, {
+        const result = module.convertBackTree(array, {
           fieldNames: { id: 'nodeId', children: 'subNodes' },
         });
         expect(result).toHaveLength(1);
@@ -3256,7 +3221,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' }, // parentId 为 undefined
           { id: 2, name: 'node2', parentId: 1 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
         expect(result[0].children).toHaveLength(1);
@@ -3267,7 +3232,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', value: 100, status: 'active', parentId: null },
           { id: 2, name: 'node2', value: 200, parentId: 1 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result[0]).toHaveProperty('name', 'node1');
         expect(result[0]).toHaveProperty('value', 100);
         expect(result[0]).toHaveProperty('status', 'active');
@@ -3290,10 +3255,10 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const array = convertToArrayTree(originalTree);
+        const array = module.convertToArrayTree(originalTree);
         // 添加 parentId
         const arrayWithParent = array.map((node) => {
-          const parent = findTree(originalTree, (n) => {
+          const parent = module.findTree(originalTree, (n) => {
             const children = n.children || [];
             return children.some((c: any) => c.id === node.id);
           });
@@ -3302,7 +3267,7 @@ describe('Tree Processor', () => {
             parentId: parent ? parent.id : null,
           };
         });
-        const convertedTree = convertBackTree(arrayWithParent);
+        const convertedTree = module.convertBackTree(arrayWithParent);
         // 验证结构
         expect(convertedTree).toHaveLength(1);
         expect(convertedTree[0].id).toBe(1);
@@ -3314,7 +3279,7 @@ describe('Tree Processor', () => {
           [1, { name: 'node1', parentId: null }],
           [2, { name: 'node2', parentId: 1 }],
         ]);
-        const result = convertBackTree(map);
+        const result = module.convertBackTree(map);
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
       });
@@ -3324,7 +3289,7 @@ describe('Tree Processor', () => {
           1: { name: 'node1', parentId: null },
           2: { name: 'node2', parentId: 1 },
         };
-        const result = convertBackTree(record);
+        const result = module.convertBackTree(record);
         // Record 转换时，key 会被设置为 id，然后按数组方式处理
         // 由于有 parentId，应该能正确构建树结构
         expect(result.length).toBeGreaterThan(0);
@@ -3341,20 +3306,20 @@ describe('Tree Processor', () => {
 
       it('应该支持单个对象转换', () => {
         const obj = { id: 1, name: 'node1', children: [] };
-        const result = convertBackTree(obj);
+        const result = module.convertBackTree(obj);
         expect(result).toHaveLength(1);
         expect(result[0]).toEqual(obj);
       });
 
       it('应该处理空 Map', () => {
         const emptyMap = new Map();
-        const result = convertBackTree(emptyMap);
+        const result = module.convertBackTree(emptyMap);
         expect(result).toEqual([]);
       });
 
       it('应该处理空 Record', () => {
         const emptyRecord = {};
-        const result = convertBackTree(emptyRecord);
+        const result = module.convertBackTree(emptyRecord);
         // 空 Record 会被当作单个对象处理，返回包含该对象的数组
         // 但由于是空对象，会被转换为包含 children 字段的对象
         expect(Array.isArray(result)).toBe(true);
@@ -3367,7 +3332,7 @@ describe('Tree Processor', () => {
           { id: undefined, name: 'node2', parentId: null },
           { id: 1, name: 'node3', parentId: null },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         // 只有 id 有效的节点会被处理
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe(1);
@@ -3379,7 +3344,7 @@ describe('Tree Processor', () => {
           { id: false, name: 'nodeFalse', parentId: null },
           { id: 1, name: 'node1', parentId: 0 },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         // 0 和 false 是有效的 id 值
         expect(result.length).toBeGreaterThanOrEqual(1);
       });
@@ -3389,7 +3354,7 @@ describe('Tree Processor', () => {
           { id: '1', name: 'node1', parentId: null },
           { id: '2', name: 'node2', parentId: '1' },
         ];
-        const result = convertBackTree(array);
+        const result = module.convertBackTree(array);
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe('1');
         expect(result[0].children).toHaveLength(1);
@@ -3401,7 +3366,7 @@ describe('Tree Processor', () => {
           [1, { name: 'node1', parentId: null }],
           [2, null as any], // null 值
         ]);
-        const result = convertBackTree(map);
+        const result = module.convertBackTree(map);
         expect(result.length).toBeGreaterThanOrEqual(0);
       });
 
@@ -3411,13 +3376,13 @@ describe('Tree Processor', () => {
           2: null as any, // null 值
           3: 'string' as any, // 非对象值
         };
-        const result = convertBackTree(record);
+        const result = module.convertBackTree(record);
         expect(result.length).toBeGreaterThanOrEqual(0);
       });
 
       it('应该处理单个对象但不是树结构的情况', () => {
         const obj = { id: 1, name: 'node1' }; // 没有 children 字段
-        const result = convertBackTree(obj);
+        const result = module.convertBackTree(obj);
         expect(result).toHaveLength(1);
         expect(result[0].children).toEqual([]);
       });
@@ -3427,14 +3392,14 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1', parentId: 0 },
           { id: 2, name: 'node2', parentId: 0 },
         ];
-        const result = convertBackTree(array, { rootParentId: 0 });
+        const result = module.convertBackTree(array, { rootParentId: 0 });
         expect(result).toHaveLength(2);
       });
     });
 
     describe('convertToMapTree', () => {
       it('应该将树结构转换为 Map', () => {
-        const result = convertToMapTree(treeData);
+        const result = module.convertToMapTree(treeData);
         expect(result instanceof Map).toBe(true);
         expect(result.size).toBe(6);
         expect(result.get(1)).toBeDefined();
@@ -3443,14 +3408,14 @@ describe('Tree Processor', () => {
       });
 
       it('应该排除 children 字段', () => {
-        const result = convertToMapTree(treeData);
+        const result = module.convertToMapTree(treeData);
         result.forEach((node) => {
           expect(node).not.toHaveProperty('children');
         });
       });
 
       it('应该处理空树', () => {
-        const result = convertToMapTree([]);
+        const result = module.convertToMapTree([]);
         expect(result.size).toBe(0);
       });
 
@@ -3464,7 +3429,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToMapTree(customTree, {
+        const result = module.convertToMapTree(customTree, {
           children: 'subNodes',
           id: 'nodeId',
         });
@@ -3479,7 +3444,7 @@ describe('Tree Processor', () => {
           { id: undefined, name: 'node2' },
           { id: 1, name: 'node3' },
         ];
-        const result = convertToMapTree(tree);
+        const result = module.convertToMapTree(tree);
         expect(result.size).toBe(1);
         expect(result.get(1)).toBeDefined();
       });
@@ -3494,7 +3459,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToMapTree(tree);
+        const result = module.convertToMapTree(tree);
         expect(result.size).toBe(1);
         // 后出现的会覆盖前面的
         expect(result.get(1)?.name).toBe('node1-duplicate');
@@ -3505,7 +3470,7 @@ describe('Tree Processor', () => {
           { id: '1', name: 'node1' },
           { id: '2', name: 'node2' },
         ];
-        const result = convertToMapTree(tree);
+        const result = module.convertToMapTree(tree);
         expect(result.size).toBe(2);
         expect(result.get('1')?.name).toBe('node1');
         expect(result.get('2')?.name).toBe('node2');
@@ -3527,7 +3492,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToMapTree(deepTree);
+        const result = module.convertToMapTree(deepTree);
         expect(result.size).toBe(3);
         expect(result.get(1)?.name).toBe('level1');
         expect(result.get(2)?.name).toBe('level2');
@@ -3537,7 +3502,7 @@ describe('Tree Processor', () => {
 
     describe('convertToLevelArrayTree', () => {
       it('应该将树结构转换为层级数组', () => {
-        const result = convertToLevelArrayTree(treeData);
+        const result = module.convertToLevelArrayTree(treeData);
         expect(Array.isArray(result)).toBe(true);
         expect(result.length).toBe(3); // 3层深度
         expect(result[0]).toHaveLength(1); // 第1层1个节点
@@ -3546,14 +3511,14 @@ describe('Tree Processor', () => {
       });
 
       it('应该按深度正确分组', () => {
-        const result = convertToLevelArrayTree(treeData);
+        const result = module.convertToLevelArrayTree(treeData);
         expect(result[0][0].id).toBe(1);
         expect(result[1].map((n) => n.id)).toEqual([2, 3]);
         expect(result[2].map((n) => n.id)).toEqual([4, 5, 6]);
       });
 
       it('应该排除 children 字段', () => {
-        const result = convertToLevelArrayTree(treeData);
+        const result = module.convertToLevelArrayTree(treeData);
         result.forEach((level) => {
           level.forEach((node) => {
             expect(node).not.toHaveProperty('children');
@@ -3562,7 +3527,7 @@ describe('Tree Processor', () => {
       });
 
       it('应该处理空树', () => {
-        const result = convertToLevelArrayTree([]);
+        const result = module.convertToLevelArrayTree([]);
         expect(result).toEqual([]);
       });
 
@@ -3571,7 +3536,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' },
           { id: 2, name: 'node2' },
         ];
-        const result = convertToLevelArrayTree(singleLevel);
+        const result = module.convertToLevelArrayTree(singleLevel);
         expect(result.length).toBe(1);
         expect(result[0]).toHaveLength(2);
       });
@@ -3586,7 +3551,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToLevelArrayTree(customTree, {
+        const result = module.convertToLevelArrayTree(customTree, {
           children: 'subNodes',
           id: 'nodeId',
         });
@@ -3616,7 +3581,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToLevelArrayTree(unbalancedTree);
+        const result = module.convertToLevelArrayTree(unbalancedTree);
         expect(result.length).toBe(3);
         expect(result[0]).toHaveLength(1);
         expect(result[1]).toHaveLength(2);
@@ -3645,7 +3610,7 @@ describe('Tree Processor', () => {
             ],
           },
         ];
-        const result = convertToLevelArrayTree(deepTree);
+        const result = module.convertToLevelArrayTree(deepTree);
         expect(result.length).toBe(4);
         expect(result[0][0].id).toBe(1);
         expect(result[1][0].id).toBe(2);
@@ -3662,7 +3627,7 @@ describe('Tree Processor', () => {
             children: [{ id: 3, name: 'child1' }],
           },
         ];
-        const result = convertToLevelArrayTree(multiRoot);
+        const result = module.convertToLevelArrayTree(multiRoot);
         expect(result.length).toBe(2);
         expect(result[0]).toHaveLength(2); // 两个根节点
         expect(result[1]).toHaveLength(1); // 一个子节点
@@ -3673,7 +3638,7 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' },
           { id: 2, name: 'node2' },
         ];
-        const result = convertToLevelArrayTree(tree);
+        const result = module.convertToLevelArrayTree(tree);
         expect(result.length).toBe(1);
         expect(result[0]).toHaveLength(2);
       });
@@ -3682,7 +3647,7 @@ describe('Tree Processor', () => {
     describe('convertToObjectTree', () => {
       it('应该将单根树转换为对象', () => {
         const singleRoot = [{ id: 1, name: 'node1', children: [] }];
-        const result = convertToObjectTree(singleRoot);
+        const result = module.convertToObjectTree(singleRoot);
         expect(result).not.toBeNull();
         expect(result?.id).toBe(1);
         expect(result?.name).toBe('node1');
@@ -3693,12 +3658,12 @@ describe('Tree Processor', () => {
           { id: 1, name: 'node1' },
           { id: 2, name: 'node2' },
         ];
-        const result = convertToObjectTree(multiRoot);
+        const result = module.convertToObjectTree(multiRoot);
         expect(result).toBeNull();
       });
 
       it('空树应该返回 null', () => {
-        const result = convertToObjectTree([]);
+        const result = module.convertToObjectTree([]);
         expect(result).toBeNull();
       });
 
@@ -3711,7 +3676,7 @@ describe('Tree Processor', () => {
             children: [{ id: 2, name: 'node2' }],
           },
         ];
-        const result = convertToObjectTree(singleRoot);
+        const result = module.convertToObjectTree(singleRoot);
         expect(result).not.toBeNull();
         expect(result?.id).toBe(1);
         expect(result?.name).toBe('node1');
@@ -3720,30 +3685,30 @@ describe('Tree Processor', () => {
       });
 
       it('应该处理 null 输入', () => {
-        const result = convertToObjectTree(null as any);
+        const result = module.convertToObjectTree(null as any);
         expect(result).toBeNull();
       });
 
       it('应该处理 undefined 输入', () => {
-        const result = convertToObjectTree(undefined as any);
+        const result = module.convertToObjectTree(undefined as any);
         expect(result).toBeNull();
       });
 
       it('应该处理非数组输入', () => {
-        const result = convertToObjectTree({ id: 1, name: 'node1' } as any);
+        const result = module.convertToObjectTree({ id: 1, name: 'node1' } as any);
         expect(result).toBeNull();
       });
 
       it('应该处理单根树但没有 children 字段的情况', () => {
         const singleRoot = [{ id: 1, name: 'node1' }];
-        const result = convertToObjectTree(singleRoot);
+        const result = module.convertToObjectTree(singleRoot);
         expect(result).not.toBeNull();
         expect(result?.id).toBe(1);
       });
 
       it('应该处理单根树但 children 为 null 的情况', () => {
         const singleRoot = [{ id: 1, name: 'node1', children: null }];
-        const result = convertToObjectTree(singleRoot);
+        const result = module.convertToObjectTree(singleRoot);
         expect(result).not.toBeNull();
         expect(result?.id).toBe(1);
       });
