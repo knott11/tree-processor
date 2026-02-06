@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Debug - Check secrets access
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "=== Debugging Secrets Access ==="
           echo "Repository: ${{ github.repository }}"
@@ -26,7 +28,7 @@ jobs:
           echo ""
           echo "Checking if NPM_TOKEN secret is accessible..."
           # 尝试访问 secret（不会显示值，但可以检查是否存在）
-          TOKEN="${{ secrets.NPM_TOKEN }}"
+          TOKEN="$NPM_TOKEN"
           if [ -z "$TOKEN" ]; then
             echo "❌ NPM_TOKEN is empty or not accessible"
             echo ""
@@ -114,9 +116,11 @@ jobs:
           cat package.json | grep -A 2 '"version"'
       
       - name: Verify NPM_TOKEN
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "=== Verifying NPM_TOKEN ==="
-          TOKEN="${{ secrets.NPM_TOKEN }}"
+          TOKEN="$NPM_TOKEN"
           
           # 调试信息（不显示完整 token）
           if [ -z "$TOKEN" ]; then
