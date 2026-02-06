@@ -75,11 +75,38 @@ jobs:
       
       - name: Verify NPM_TOKEN
         run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "?Error: NPM_TOKEN secret is not set!"
+          echo "Checking NPM_TOKEN configuration..."
+          TOKEN="${{ secrets.NPM_TOKEN }}"
+          
+          # 调试信息（不显示完整 token）
+          if [ -z "$TOKEN" ]; then
+            echo "❌ Error: NPM_TOKEN secret is not set or empty!"
+            echo ""
+            echo "Troubleshooting steps:"
+            echo "1. Go to: https://github.com/knott11/tree-processor/settings/secrets/actions"
+            echo "2. Verify that 'NPM_TOKEN' exists in Repository secrets"
+            echo "3. Check that the name is exactly 'NPM_TOKEN' (case-sensitive)"
+            echo "4. If it doesn't exist, click 'New repository secret' and add it"
+            echo ""
+            echo "To create an npm token:"
+            echo "1. Go to https://www.npmjs.com/settings/[your-username]/tokens"
+            echo "2. Generate New Token (Classic)"
+            echo "3. Select 'Automation' type with 'Read and write' permissions"
+            echo "4. Copy the token (starts with 'npm_')"
+            echo "5. Add it to GitHub Secrets with name 'NPM_TOKEN'"
             exit 1
           else
-            echo "?NPM_TOKEN is configured"
+            TOKEN_LENGTH=${#TOKEN}
+            echo "✅ NPM_TOKEN is configured (length: $TOKEN_LENGTH characters)"
+            
+            # 验证 token 格式（npm tokens 通常以 npm_ 开头）
+            if [[ "$TOKEN" =~ ^npm_ ]]; then
+              echo "✅ Token format looks correct (starts with 'npm_')"
+              echo "✅ First 10 characters: ${TOKEN:0:10}..."
+            else
+              echo "⚠️ Warning: Token doesn't start with 'npm_', please verify it's a valid npm token"
+              echo "⚠️ First 10 characters: ${TOKEN:0:10}..."
+            fi
           fi
       
       - name: Install dependencies
