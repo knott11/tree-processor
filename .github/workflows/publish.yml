@@ -39,7 +39,11 @@ jobs:
             echo "1. Go to: https://github.com/knott11/tree-processor/settings/secrets/actions"
             echo "2. Verify 'NPM_TOKEN' exists in 'Repository secrets' (not Environment secrets)"
             echo "3. Check the name is exactly 'NPM_TOKEN' (no spaces, case-sensitive)"
-            echo "4. If missing, create it with your npm token (starts with 'npm_')"
+            echo "4. If missing, create a Granular Access Token:"
+            echo "   - Go to https://www.npmjs.com/settings/[your-username]/access-tokens"
+            echo "   - Click 'Generate New Token' → 'Granular Access Token'"
+            echo "   - Set permissions: Packages (Read and write)"
+            echo "   - Copy token and add to GitHub Secrets"
           else
             TOKEN_LEN=${#TOKEN}
             echo "✅ NPM_TOKEN secret is accessible"
@@ -119,29 +123,27 @@ jobs:
             echo ""
             echo "Troubleshooting steps:"
             echo "1. Go to: https://github.com/knott11/tree-processor/settings/secrets/actions"
-            echo "2. Verify that 'NPM_TOKEN' exists in Repository secrets"
-            echo "3. Check that the name is exactly 'NPM_TOKEN' (case-sensitive)"
+            echo "2. Verify that 'NPM_TOKEN' exists in Repository secrets (not Environment secrets)"
+            echo "3. Check that the name is exactly 'NPM_TOKEN' (case-sensitive, no spaces)"
             echo "4. If it doesn't exist, click 'New repository secret' and add it"
             echo ""
-            echo "To create an npm token:"
-            echo "1. Go to https://www.npmjs.com/settings/[your-username]/tokens"
-            echo "2. Generate New Token (Classic)"
-            echo "3. Select 'Automation' type with 'Read and write' permissions"
-            echo "4. Copy the token (starts with 'npm_')"
-            echo "5. Add it to GitHub Secrets with name 'NPM_TOKEN'"
+            echo "To create an npm Granular Access Token:"
+            echo "1. Go to https://www.npmjs.com/settings/[your-username]/access-tokens"
+            echo "2. Click 'Generate New Token' → 'Granular Access Token'"
+            echo "3. Token name: e.g., 'GitHub Actions Publish'"
+            echo "4. Expiration: Choose expiration (90 days max for granular tokens)"
+            echo "5. Select permissions:"
+            echo "   - Packages: Read and write"
+            echo "   - Scopes: Select your package scope (or 'All packages')"
+            echo "6. Copy the token and add it to GitHub Secrets with name 'NPM_TOKEN'"
+            echo ""
+            echo "Note: Granular tokens may have different formats than classic tokens"
             exit 1
           else
             TOKEN_LENGTH=${#TOKEN}
             echo "✅ NPM_TOKEN is configured (length: $TOKEN_LENGTH characters)"
-            
-            # 验证 token 格式（npm tokens 通常以 npm_ 开头）
-            if [[ "$TOKEN" =~ ^npm_ ]]; then
-              echo "✅ Token format looks correct (starts with 'npm_')"
-              echo "✅ First 10 characters: ${TOKEN:0:10}..."
-            else
-              echo "⚠️ Warning: Token doesn't start with 'npm_', please verify it's a valid npm token"
-              echo "⚠️ First 10 characters: ${TOKEN:0:10}..."
-            fi
+            echo "✅ Token exists and will be used for publishing"
+            # Granular tokens may have different formats, so we don't check for 'npm_' prefix
           fi
       
       - name: Install dependencies
