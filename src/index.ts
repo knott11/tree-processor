@@ -500,23 +500,41 @@ export function getNodeDepth(
 /**
  * 树结构数据去重
  * @param tree 树结构数据
- * @param key 用于去重的键名
+ * @param key 用于去重的键名（字符串）或键名数组（多字段联合去重）或自定义函数
  * @param fieldNames 自定义字段名配置
  * @returns 返回去重后的树结构数据
  */
 export function dedupTree(
   tree: TreeData,
-  key: string,
+  key: string | string[] | ((node: TreeNode) => any),
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): TreeData {
   const seenKeys = new Set<any>();
-  const result: TreeData = [];
+  
+  // 生成去重键的函数
+  const getKey = (node: TreeNode): any => {
+    if (typeof key === 'function') {
+      // 自定义函数
+      return key(node);
+    } else if (Array.isArray(key)) {
+      // 多字段联合去重：使用 JSON.stringify 生成组合键
+      const values = key.map(k => node[k]);
+      // 如果所有值都是 undefined 或 null，返回特殊标记
+      if (values.every(v => v === undefined || v === null)) {
+        return undefined;
+      }
+      return JSON.stringify(values);
+    } else {
+      // 单字段去重（原有逻辑）
+      return node[key];
+    }
+  };
   
   function traverse(nodes: TreeData): TreeData {
     const uniqueNodes: TreeData = [];
     
     for (const node of nodes) {
-      const nodeKey = node[key];
+      const nodeKey = getKey(node);
       
       if (nodeKey !== undefined && nodeKey !== null) {
         if (seenKeys.has(nodeKey)) {

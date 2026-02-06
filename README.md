@@ -9,7 +9,7 @@
 <div align="center">
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
-![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.3K%2F2mo-brightgreen?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
@@ -411,17 +411,45 @@ console.log(treeData) // 删除后的树结构
 
 ### dedupTree
 
-树结构对象数组去重方法，根据指定的键去除重复节点。保留第一次出现的节点。
+树结构对象数组去重方法，根据指定的键去除重复节点。保留第一次出现的节点。支持单字段、多字段联合去重和自定义函数。
+
+**参数说明：**
+- `tree`: 树结构数据
+- `key`: 用于去重的键名，支持三种类型：
+  - `string`: 单字段去重（如 `'id'`）
+  - `string[]`: 多字段联合去重（如 `['id', 'type']`）
+  - `(node: TreeNode) => any`: 自定义函数，返回用于去重的值
+- `fieldNames`: 自定义字段名配置（可选）
 
 ```javascript
-// 根据 id 字段去重
+// 方式1：单字段去重（原有用法）
 const uniqueTreeData = t.dedupTree(treeData, 'id')
 console.log(uniqueTreeData) // 返回去重后的树结构数据
 
-// 根据 name 字段去重
-const uniqueByNameTree = t.dedupTree(treeData, 'name')
-console.log(uniqueByNameTree) // 返回根据 name 去重后的数据
+// 方式2：多字段联合去重（新功能）
+const tree = [
+  {
+    id: 1,
+    children: [
+      { id: 2, type: 'A', name: 'node1' },
+      { id: 2, type: 'B', name: 'node2' }, // 保留（id相同但type不同）
+      { id: 2, type: 'A', name: 'node3' }, // 去重（id和type都相同）
+    ]
+  }
+]
+const uniqueByMultiFields = t.dedupTree(tree, ['id', 'type'])
+// 结果：保留 node1 和 node2，node3 被去重
+
+// 方式3：自定义函数去重
+const uniqueByCustom = t.dedupTree(treeData, (node) => node.code)
+// 或更复杂的逻辑
+const uniqueByComplex = t.dedupTree(treeData, (node) => `${node.id}-${node.type}`)
 ```
+
+**注意事项：**
+- 如果 key 值为 `undefined` 或 `null`，节点不会被去重（会全部保留）
+- 多字段联合去重使用字段值的组合来判断重复
+- 递归处理所有层级的子节点
 
 ---
 

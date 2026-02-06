@@ -504,6 +504,76 @@ describe('Tree Processor', () => {
       expect(result[0].children).toHaveLength(1);
       expect(result[0].children[0].id).toBe(2);
     });
+
+    it('应该支持多字段联合去重', () => {
+      const duplicateTree = [
+        {
+          id: 1,
+          name: 'node1',
+          children: [
+            { id: 2, name: 'node2', type: 'A' },
+            { id: 2, name: 'node2-different', type: 'B' }, // id相同但type不同，应该保留
+            { id: 2, name: 'node2-same', type: 'A' }, // id和type都相同，应该被去重
+            { id: 3, name: 'node3', type: 'A' },
+          ],
+        },
+      ];
+      // 使用多字段联合去重：id 和 type
+      const result = dedupTree(duplicateTree, ['id', 'type']);
+      expect(result[0].children).toHaveLength(3);
+      expect(result[0].children[0].name).toBe('node2');
+      expect(result[0].children[1].name).toBe('node2-different');
+      expect(result[0].children[2].name).toBe('node3');
+    });
+
+    it('应该支持自定义函数去重', () => {
+      const duplicateTree = [
+        {
+          id: 1,
+          name: 'node1',
+          children: [
+            { id: 2, name: 'node2', code: 'A001' },
+            { id: 2, name: 'node2-different', code: 'A002' },
+            { id: 2, name: 'node2-same', code: 'A001' }, // code相同，应该被去重
+          ],
+        },
+      ];
+      // 使用自定义函数：根据 code 字段去重
+      const result = dedupTree(duplicateTree, (node) => node.code);
+      expect(result[0].children).toHaveLength(2);
+      expect(result[0].children[0].code).toBe('A001');
+      expect(result[0].children[1].code).toBe('A002');
+    });
+
+    it('多字段联合去重应该处理嵌套节点', () => {
+      const duplicateTree = [
+        {
+          id: 1,
+          name: 'node1',
+          children: [
+            {
+              id: 2,
+              name: 'node2',
+              type: 'A',
+              children: [
+                { id: 3, name: 'node3', type: 'B' },
+                { id: 3, name: 'node3-duplicate', type: 'B' },
+              ],
+            },
+            {
+              id: 2,
+              name: 'node2-duplicate',
+              type: 'A',
+              children: [{ id: 4, name: 'node4' }],
+            },
+          ],
+        },
+      ];
+      const result = dedupTree(duplicateTree, ['id', 'type']);
+      expect(result[0].children).toHaveLength(1);
+      expect(result[0].children[0].children).toHaveLength(1);
+      expect(result[0].children[0].children[0].name).toBe('node3');
+    });
   });
 
   describe('自定义字段名', () => {

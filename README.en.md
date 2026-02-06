@@ -9,7 +9,7 @@
 <div align="center">
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
-![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.3K%2F2mo-brightgreen?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
@@ -411,17 +411,45 @@ console.log(treeData) // Tree structure after removal
 
 ### dedupTree
 
-Tree-structured object array deduplication method that removes duplicate nodes based on the specified key. Keeps the first occurrence of the node.
+Tree-structured object array deduplication method that removes duplicate nodes based on the specified key. Keeps the first occurrence of the node. Supports single field, multiple fields combined deduplication, and custom functions.
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `key`: Key(s) for deduplication, supports three types:
+  - `string`: Single field deduplication (e.g., `'id'`)
+  - `string[]`: Multiple fields combined deduplication (e.g., `['id', 'type']`)
+  - `(node: TreeNode) => any`: Custom function that returns the value for deduplication
+- `fieldNames`: Custom field name configuration (optional)
 
 ```javascript
-// Deduplicate based on id field
+// Method 1: Single field deduplication (original usage)
 const uniqueTreeData = t.dedupTree(treeData, 'id')
 console.log(uniqueTreeData) // Returns deduplicated tree-structured data
 
-// Deduplicate based on name field
-const uniqueByNameTree = t.dedupTree(treeData, 'name')
-console.log(uniqueByNameTree) // Returns data deduplicated by name
+// Method 2: Multiple fields combined deduplication (new feature)
+const tree = [
+  {
+    id: 1,
+    children: [
+      { id: 2, type: 'A', name: 'node1' },
+      { id: 2, type: 'B', name: 'node2' }, // Kept (same id but different type)
+      { id: 2, type: 'A', name: 'node3' }, // Deduplicated (both id and type are same)
+    ]
+  }
+]
+const uniqueByMultiFields = t.dedupTree(tree, ['id', 'type'])
+// Result: Keeps node1 and node2, node3 is deduplicated
+
+// Method 3: Custom function deduplication
+const uniqueByCustom = t.dedupTree(treeData, (node) => node.code)
+// Or more complex logic
+const uniqueByComplex = t.dedupTree(treeData, (node) => `${node.id}-${node.type}`)
 ```
+
+**Notes:**
+- If the key value is `undefined` or `null`, the node will not be deduplicated (all will be kept)
+- Multiple fields combined deduplication uses the combination of field values to determine duplicates
+- Recursively processes all levels of child nodes
 
 ---
 
