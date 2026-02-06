@@ -175,13 +175,17 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "Checking if version $VERSION already exists on npm..."
+          # 配置 npm 认证以检查版本
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
-            echo "?Error: Version $VERSION already exists on npm!"
+            echo "❌ Error: Version $VERSION already exists on npm!"
             echo "Please use a different version number."
             exit 1
           else
-            echo "?Version $VERSION is available"
+            echo "✅ Version $VERSION is available"
           fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
       - name: Verify package.json
         run: |
@@ -210,8 +214,24 @@ jobs:
           echo "Publishing to npm with provenance..."
           echo "Package: tree-processor"
           echo "Version: ${{ steps.version.outputs.version }}"
+          echo ""
+          echo "Current npm configuration:"
+          npm config get registry
+          npm config get //registry.npmjs.org/:_authToken | head -c 20 && echo "..."
+          echo ""
           # Granular Access Token 应该可以绕过 2FA
-          npm publish --provenance --access public
+          npm publish --provenance --access public 2>&1 | tee /tmp/npm-publish-output.log || {
+            PUBLISH_ERROR=$(cat /tmp/npm-publish-output.log)
+            echo "❌ npm publish failed with error:"
+            echo "$PUBLISH_ERROR"
+            echo ""
+            echo "Common issues:"
+            echo "1. 2FA required - ensure you're using a Granular Access Token"
+            echo "2. Version already exists - check npm registry"
+            echo "3. Token expired or invalid - regenerate token"
+            echo "4. Package name conflict - check package name"
+            exit 1
+          }
           echo "✅ Successfully published to npm!"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
