@@ -16,6 +16,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Debug - Check secrets access
+        run: |
+          echo "=== Debugging Secrets Access ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Actor: ${{ github.actor }}"
+          echo ""
+          echo "Checking if NPM_TOKEN secret is accessible..."
+          # 尝试访问 secret（不会显示值，但可以检查是否存在）
+          TOKEN="${{ secrets.NPM_TOKEN }}"
+          if [ -z "$TOKEN" ]; then
+            echo "❌ NPM_TOKEN is empty or not accessible"
+            echo ""
+            echo "Possible causes:"
+            echo "1. Secret name mismatch (must be exactly 'NPM_TOKEN')"
+            echo "2. Secret not in Repository secrets (check Environment secrets vs Repository secrets)"
+            echo "3. Workflow permissions issue"
+            echo "4. Secret was just added and workflow needs to be re-run"
+            echo ""
+            echo "Action required:"
+            echo "1. Go to: https://github.com/knott11/tree-processor/settings/secrets/actions"
+            echo "2. Verify 'NPM_TOKEN' exists in 'Repository secrets' (not Environment secrets)"
+            echo "3. Check the name is exactly 'NPM_TOKEN' (no spaces, case-sensitive)"
+            echo "4. If missing, create it with your npm token (starts with 'npm_')"
+          else
+            TOKEN_LEN=${#TOKEN}
+            echo "✅ NPM_TOKEN secret is accessible"
+            echo "Token length: $TOKEN_LEN characters"
+            if [[ "$TOKEN" =~ ^npm_ ]]; then
+              echo "✅ Token format correct (starts with 'npm_')"
+            else
+              echo "⚠️ Token doesn't start with 'npm_', please verify"
+            fi
+          fi
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -75,7 +110,7 @@ jobs:
       
       - name: Verify NPM_TOKEN
         run: |
-          echo "Checking NPM_TOKEN configuration..."
+          echo "=== Verifying NPM_TOKEN ==="
           TOKEN="${{ secrets.NPM_TOKEN }}"
           
           # 调试信息（不显示完整 token）
