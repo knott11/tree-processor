@@ -27,10 +27,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "release" ]; then
             VERSION="${{ github.event.release.tag_name }}"
-            # 移除 'v' 前缀（如果有）
+            # 移除 'v' 前缀（如果有?
             VERSION=${VERSION#v}
           else
-            # 从 package.json 读取版本号
+            # ?package.json 读取版本?
             VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -43,18 +43,43 @@ jobs:
       - name: Update package.json version
         if: github.event_name == 'release'
         run: |
-          echo "Updating package.json version to ${{ steps.version.outputs.version }}"
-          npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
-          echo "Updated package.json version to ${{ steps.version.outputs.version }}"
+          TARGET_VERSION="${{ steps.version.outputs.version }}"
+          # 去除可能的空格和换行符
+          TARGET_VERSION=$(echo "$TARGET_VERSION" | tr -d '[:space:]')
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          CURRENT_VERSION=$(echo "$CURRENT_VERSION" | tr -d '[:space:]')
+          
+          echo "Current version in package.json: '$CURRENT_VERSION'"
+          echo "Target version from release tag: '$TARGET_VERSION'"
+          echo "Version comparison: [${CURRENT_VERSION}] vs [${TARGET_VERSION}]"
+          
+          if [ "$CURRENT_VERSION" = "$TARGET_VERSION" ]; then
+            echo "✅ Version already matches ($CURRENT_VERSION), skipping update"
+          else
+            echo "📝 Versions differ, updating package.json from $CURRENT_VERSION to $TARGET_VERSION"
+            # 尝试使用 npm version，如果失败（比如版本已匹配），则忽略错误
+            npm version "$TARGET_VERSION" --no-git-tag-version 2>&1 | tee /tmp/npm-version-output.log || {
+              NPM_ERROR=$(cat /tmp/npm-version-output.log)
+              if echo "$NPM_ERROR" | grep -q "Version not changed"; then
+                echo "ℹ️ Version already matches (npm detected), skipping update"
+              else
+                echo "⚠️ npm version failed with error: $NPM_ERROR"
+                echo "📝 Attempting to update package.json manually..."
+                node -e "const fs=require('fs');const pkg=require('./package.json');pkg.version='$TARGET_VERSION';fs.writeFileSync('package.json',JSON.stringify(pkg,null,2)+'\n');"
+                echo "✅ Manually updated package.json version to $TARGET_VERSION"
+              fi
+            }
+          fi
+          echo "Final version in package.json:"
           cat package.json | grep -A 2 '"version"'
       
       - name: Verify NPM_TOKEN
         run: |
           if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "❌ Error: NPM_TOKEN secret is not set!"
+            echo "?Error: NPM_TOKEN secret is not set!"
             exit 1
           else
-            echo "✅ NPM_TOKEN is configured"
+            echo "?NPM_TOKEN is configured"
           fi
       
       - name: Install dependencies
@@ -71,10 +96,10 @@ jobs:
           echo "Checking build output..."
           ls -la dist/
           if [ ! -f "dist/tree-processor.cjs.js" ] || [ ! -f "dist/tree-processor.esm.js" ] || [ ! -f "dist/index.d.ts" ]; then
-            echo "❌ Error: Build output files are missing!"
+            echo "?Error: Build output files are missing!"
             exit 1
           else
-            echo "✅ Build output files exist"
+            echo "?Build output files exist"
           fi
       
       - name: Check if version already exists
@@ -82,11 +107,11 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           echo "Checking if version $VERSION already exists on npm..."
           if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
-            echo "❌ Error: Version $VERSION already exists on npm!"
+            echo "?Error: Version $VERSION already exists on npm!"
             echo "Please use a different version number."
             exit 1
           else
-            echo "✅ Version $VERSION is available"
+            echo "?Version $VERSION is available"
           fi
       
       - name: Verify package.json
@@ -98,7 +123,7 @@ jobs:
             console.log('Package version:', pkg.version);
             console.log('Package files:', pkg.files);
             if (!pkg.name || !pkg.version) {
-              console.error('❌ Error: package.json is missing name or version');
+              console.error('?Error: package.json is missing name or version');
               process.exit(1);
             }
           "
@@ -109,7 +134,7 @@ jobs:
           echo "Package: tree-processor"
           echo "Version: ${{ steps.version.outputs.version }}"
           npm publish --provenance --access public
-          echo "✅ Successfully published to npm!"
+          echo "?Successfully published to npm!"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
@@ -119,7 +144,7 @@ jobs:
           echo "Verifying publication..."
           sleep 5
           if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
-            echo "✅ Successfully verified: tree-processor@$VERSION is now on npm"
+            echo "?Successfully verified: tree-processor@$VERSION is now on npm"
             npm view tree-processor@$VERSION
           else
             echo "⚠️ Warning: Could not verify publication immediately. Please check npm manually."
