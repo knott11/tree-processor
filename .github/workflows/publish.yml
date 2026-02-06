@@ -35,12 +35,27 @@ jobs:
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Extracted version: $VERSION"
+          echo "Event name: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "Release tag: ${{ github.event.release.tag_name }}"
+          fi
       
       - name: Update package.json version
         if: github.event_name == 'release'
         run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          echo "Updating package.json version to ${{ steps.version.outputs.version }}"
+          npm version "${{ steps.version.outputs.version }}" --no-git-tag-version
           echo "Updated package.json version to ${{ steps.version.outputs.version }}"
+          cat package.json | grep -A 2 '"version"'
+      
+      - name: Verify NPM_TOKEN
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "❌ Error: NPM_TOKEN secret is not set!"
+            exit 1
+          else
+            echo "✅ NPM_TOKEN is configured"
+          fi
       
       - name: Install dependencies
         run: npm ci
@@ -51,7 +66,61 @@ jobs:
       - name: Build
         run: npm run build
       
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -la dist/
+          if [ ! -f "dist/tree-processor.cjs.js" ] || [ ! -f "dist/tree-processor.esm.js" ] || [ ! -f "dist/index.d.ts" ]; then
+            echo "❌ Error: Build output files are missing!"
+            exit 1
+          else
+            echo "✅ Build output files exist"
+          fi
+      
+      - name: Check if version already exists
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Checking if version $VERSION already exists on npm..."
+          if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
+            echo "❌ Error: Version $VERSION already exists on npm!"
+            echo "Please use a different version number."
+            exit 1
+          else
+            echo "✅ Version $VERSION is available"
+          fi
+      
+      - name: Verify package.json
+        run: |
+          echo "Verifying package.json..."
+          node -e "
+            const pkg = require('./package.json');
+            console.log('Package name:', pkg.name);
+            console.log('Package version:', pkg.version);
+            console.log('Package files:', pkg.files);
+            if (!pkg.name || !pkg.version) {
+              console.error('❌ Error: package.json is missing name or version');
+              process.exit(1);
+            }
+          "
+      
       - name: Publish to npm with provenance
-        run: npm publish --provenance --access public
+        run: |
+          echo "Publishing to npm with provenance..."
+          echo "Package: tree-processor"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          npm publish --provenance --access public
+          echo "✅ Successfully published to npm!"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Verify publication
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Verifying publication..."
+          sleep 5
+          if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
+            echo "✅ Successfully verified: tree-processor@$VERSION is now on npm"
+            npm view tree-processor@$VERSION
+          else
+            echo "⚠️ Warning: Could not verify publication immediately. Please check npm manually."
+          fi
