@@ -245,10 +245,16 @@ jobs:
           npm config get registry
           npm config get //registry.npmjs.org/:_authToken | head -c 20 && echo "..."
           echo ""
+          # 使用 set -o pipefail 确保管道中的错误能被捕获
+          set -o pipefail
           # Granular Access Token 应该可以绕过 2FA
-          npm publish --provenance --access public 2>&1 | tee /tmp/npm-publish-output.log || {
+          npm publish --provenance --access public 2>&1 | tee /tmp/npm-publish-output.log
+          PUBLISH_EXIT_CODE=${PIPESTATUS[0]}
+          if [ $PUBLISH_EXIT_CODE -ne 0 ]; then
             PUBLISH_ERROR=$(cat /tmp/npm-publish-output.log)
-            echo "❌ npm publish failed with error:"
+            echo ""
+            echo "❌ npm publish failed with exit code: $PUBLISH_EXIT_CODE"
+            echo "Error output:"
             echo "$PUBLISH_ERROR"
             echo ""
             echo "Common issues:"
@@ -256,8 +262,10 @@ jobs:
             echo "2. Version already exists - check npm registry"
             echo "3. Token expired or invalid - regenerate token"
             echo "4. Package name conflict - check package name"
+            echo "5. Network issues - check npm registry connectivity"
             exit 1
-          }
+          fi
+          echo ""
           echo "✅ Successfully published to npm!"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -266,10 +274,28 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "Verifying publication..."
-          sleep 5
-          if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
-            echo "?Successfully verified: tree-processor@$VERSION is now on npm"
-            npm view tree-processor@$VERSION
-          else
-            echo "⚠️ Warning: Could not verify publication immediately. Please check npm manually."
-          fi
+          echo "Waiting for npm CDN to sync (this may take up to 30 seconds)..."
+          # 最多等待 30 秒，每 5 秒检查一次
+          MAX_ATTEMPTS=6
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            sleep 5
+            ATTEMPT=$((ATTEMPT + 1))
+            if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
+              echo ""
+              echo "✅ Successfully verified: tree-processor@$VERSION is now on npm"
+              echo ""
+              echo "Package details:"
+              npm view tree-processor@$VERSION
+              exit 0
+            else
+              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Version not yet available, waiting..."
+            fi
+          done
+          echo ""
+          echo "⚠️ Warning: Could not verify publication after $MAX_ATTEMPTS attempts."
+          echo "This may be due to npm CDN caching. Please check manually:"
+          echo "  npm view tree-processor@$VERSION"
+          echo ""
+          echo "If the version exists, the publication was successful."
+          echo "If not, please check the publish step logs for errors."
