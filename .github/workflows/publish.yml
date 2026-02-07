@@ -80,6 +80,9 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+          always-auth: true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
       - name: Extract version from tag
         id: version
@@ -192,8 +195,7 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           echo "Checking if version $VERSION already exists on npm..."
-          # 配置 npm 认证以检查版本
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          # setup-node 应该已经配置好了认证
           if npm view tree-processor@$VERSION version > /dev/null 2>&1; then
             echo "❌ Error: Version $VERSION already exists on npm!"
             echo "Please use a different version number."
@@ -220,13 +222,18 @@ jobs:
       
       - name: Configure npm for automation
         run: |
-          echo "Configuring npm for automated publishing..."
-          # 清除可能存在的旧登录状态（避免认证冲突）
-          npm logout || true
-          # 创建 .npmrc 文件，配置自动化发布
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
-          echo "✅ npm configured for automation"
+          echo "Verifying npm configuration..."
+          # setup-node 应该已经配置好了认证，这里只做验证
+          npm config get registry
+          if npm config get //registry.npmjs.org/:_authToken > /dev/null 2>&1; then
+            echo "✅ npm authentication is configured"
+          else
+            echo "⚠️ Warning: npm authentication may not be configured correctly"
+            echo "Creating .npmrc as fallback..."
+            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+            echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+          fi
+          echo "✅ npm ready for publishing"
       
       - name: Publish to npm with provenance
         run: |
