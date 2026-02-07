@@ -9,10 +9,11 @@
 <div align="center">
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
-![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.8K%2F2mo-brightgreen?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-15KB-blue?style=flat-square)
+![performance](https://img.shields.io/badge/performance-%3C%200.03ms-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
+![coverage](https://img.shields.io/badge/coverage-97%25-green?style=flat-square)
 
 一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，提供50+ API，包括遍历、查找、修改、转换、查询、分析、验证等完整功能。
 
@@ -34,7 +35,7 @@
   - [克隆复制方法](#克隆复制方法)
   - [关系查询方法](#关系查询方法)
   - [数据验证方法](#数据验证方法)
-  - [聚合分析方法](#聚合分析方法)
+  - [统计分析方法](#统计分析方法)
 - [自定义字段名](#自定义字段名)
 - [测试](#测试)
 - [开发](#开发)
@@ -1542,9 +1543,9 @@ console.log(t.isSafeTreeDepth(customTree, 2, fieldNames)) // false
 
 ---
 
-## 聚合分析方法
+## 统计分析方法
 
-对树结构数据进行聚合、统计和分析的方法。
+对树结构数据进行统计和分析的方法。
 
 ### reduceTree
 

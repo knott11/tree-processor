@@ -9,10 +9,11 @@
 <div align="center">
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
-![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
+![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.8K%2F2mo-brightgreen?style=flat-square)
 ![bundle size](https://img.shields.io/badge/bundle-15KB-blue?style=flat-square)
+![performance](https://img.shields.io/badge/performance-%3C%200.03ms-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
+![coverage](https://img.shields.io/badge/coverage-97%25-green?style=flat-square)
 
 A lightweight tree-structured data processing utility library written in TypeScript, providing 50+ APIs including traversal, search, modification, conversion, query, analysis, and validation.
 
@@ -34,7 +35,7 @@ A lightweight tree-structured data processing utility library written in TypeScr
   - [Clone and Copy Methods](#clone-and-copy-methods)
   - [Relationship Query Methods](#relationship-query-methods)
   - [Data Validation Methods](#data-validation-methods)
-  - [Aggregation Analysis Methods](#aggregation-analysis-methods)
+  - [Statistical Analysis Methods](#statistical-analysis-methods)
 - [Custom Field Names](#custom-field-names)
 - [Testing](#testing)
 - [Development](#development)
@@ -1542,9 +1543,9 @@ console.log(t.isSafeTreeDepth(customTree, 2, fieldNames)) // false
 
 ---
 
-## Aggregation Analysis Methods
+## Statistical Analysis Methods
 
-Methods for aggregating, statistics, and analyzing tree-structured data.
+Methods for statistical analysis of tree-structured data.
 
 ### reduceTree
 
