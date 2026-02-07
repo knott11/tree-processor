@@ -4316,6 +4316,111 @@ describe('Tree Processor', () => {
         expect(cloned[0].subNodes[0].label).toBe('Node 2');
       });
     });
+
+    describe('concatTree', () => {
+      it('应该连接多个树结构数据', () => {
+        const tree1 = [{ id: 1, name: 'node1' }];
+        const tree2 = [{ id: 2, name: 'node2' }];
+        const tree3 = [{ id: 3, name: 'node3' }];
+        
+        const result = concatTree(tree1, tree2, tree3);
+        expect(result).toHaveLength(3);
+        expect(result[0].id).toBe(1);
+        expect(result[1].id).toBe(2);
+        expect(result[2].id).toBe(3);
+      });
+
+      it('应该深拷贝树，不修改原树', () => {
+        const tree1 = [{ id: 1, name: 'node1' }];
+        const tree2 = [{ id: 2, name: 'node2' }];
+        
+        const result = concatTree(tree1, tree2);
+        result[0].id = 999;
+        expect(tree1[0].id).toBe(1);
+      });
+
+      it('应该保留子节点结构', () => {
+        const tree1 = [{ id: 1, children: [{ id: 2 }] }];
+        const tree2 = [{ id: 3, children: [{ id: 4 }] }];
+        
+        const result = concatTree(tree1, tree2);
+        expect(result).toHaveLength(2);
+        expect(result[0].children).toHaveLength(1);
+        expect(result[0].children[0].id).toBe(2);
+        expect(result[1].children).toHaveLength(1);
+        expect(result[1].children[0].id).toBe(4);
+      });
+
+      it('应该处理空数组', () => {
+        const tree1 = [{ id: 1 }];
+        const tree2: any[] = [];
+        const tree3 = [{ id: 2 }];
+        
+        const result = concatTree(tree1, tree2, tree3);
+        expect(result).toHaveLength(2);
+      });
+
+      it('应该支持自定义字段名（不带 fieldNames 参数）', () => {
+        const tree1 = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const tree2 = [{ nodeId: 3, subNodes: [{ nodeId: 4 }] }];
+        
+        // 不传 fieldNames，使用默认字段名（children, id）
+        // cloneTree 会尝试访问 node['children']，但实际是 node['subNodes']
+        // 所以子节点不会被递归深拷贝，但节点本身的 subNodes 属性会被浅拷贝保留
+        const result = concatTree(tree1, tree2);
+        expect(result).toHaveLength(2);
+        expect(result[0].nodeId).toBe(1);
+        expect(result[1].nodeId).toBe(3);
+        // subNodes 属性会被浅拷贝保留（因为 cloneTree 先拷贝整个节点）
+        expect(result[0].subNodes).toBeDefined();
+        expect(Array.isArray(result[0].subNodes)).toBe(true);
+        // 但子节点不会被递归深拷贝（因为 cloneTree 使用默认字段名查找 children）
+        // 注意：subNodes 中的子节点引用仍然指向原树，不是深拷贝
+        expect(result[0].subNodes[0].nodeId).toBe(2);
+        // 修改原树会影响结果（说明不是深拷贝）
+        tree1[0].subNodes[0].nodeId = 999;
+        expect(result[0].subNodes[0].nodeId).toBe(999);
+      });
+
+      it('应该支持自定义字段名（带 fieldNames 参数）', () => {
+        const tree1 = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const tree2 = [{ nodeId: 3, subNodes: [{ nodeId: 4 }] }];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        
+        // 传 fieldNames，应该能正确保留子节点
+        const result = concatTree(tree1, tree2, fieldNames);
+        expect(result).toHaveLength(2);
+        expect(result[0].nodeId).toBe(1);
+        expect(result[0].subNodes).toHaveLength(1);
+        expect(result[0].subNodes[0].nodeId).toBe(2);
+        expect(result[1].nodeId).toBe(3);
+        expect(result[1].subNodes).toHaveLength(1);
+        expect(result[1].subNodes[0].nodeId).toBe(4);
+      });
+
+      it('应该正确处理单个树', () => {
+        const tree1 = [{ id: 1, name: 'node1' }];
+        const result = concatTree(tree1);
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe(1);
+      });
+
+      it('应该正确处理所有空数组', () => {
+        const result = concatTree([], [], []);
+        expect(result).toEqual([]);
+      });
+
+      it('应该保持向后兼容（不带 fieldNames）', () => {
+        const tree1 = [{ id: 1, children: [{ id: 2 }] }];
+        const tree2 = [{ id: 3, children: [{ id: 4 }] }];
+        
+        // 不带 fieldNames 的调用方式应该仍然有效
+        const result = concatTree(tree1, tree2);
+        expect(result).toHaveLength(2);
+        expect(result[0].children).toHaveLength(1);
+        expect(result[1].children).toHaveLength(1);
+      });
+    });
   });
 
   describe('数据分析方法', () => {

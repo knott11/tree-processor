@@ -1480,20 +1480,57 @@ export function cloneWithTransform(
 }
 
 /**
+ * 判断参数是否是 FieldNames 类型
+ */
+function isFieldNames(arg: any): arg is FieldNames {
+  return (
+    arg &&
+    typeof arg === 'object' &&
+    !Array.isArray(arg) &&
+    'children' in arg &&
+    'id' in arg &&
+    typeof arg.children === 'string' &&
+    typeof arg.id === 'string' &&
+    Object.keys(arg).length === 2
+  );
+}
+
+/**
+ * 连接多个树结构数据（不带 fieldNames）
+ */
+export function concatTree(...trees: TreeData[]): TreeData;
+
+/**
+ * 连接多个树结构数据（带 fieldNames）
+ */
+export function concatTree(...args: [...TreeData[], FieldNames]): TreeData;
+
+/**
  * 连接多个树结构数据
- * @param trees 多个树结构数据数组
- * @param fieldNames 自定义字段名配置
+ * @param args 树结构数据数组，最后一个参数可以是 fieldNames（可选）
  * @returns 返回连接后的树结构数据（深拷贝，不修改原树）
  */
-export function concatTree(
-  ...trees: TreeData[]
-): TreeData {
+export function concatTree(...args: TreeData[] | [...TreeData[], FieldNames]): TreeData {
+  const lastArg = args[args.length - 1];
+  let fieldNames: FieldNames;
+  let trees: TreeData[];
+  
+  if (isFieldNames(lastArg)) {
+    // 最后一个参数是 FieldNames
+    fieldNames = lastArg;
+    trees = args.slice(0, -1) as TreeData[];
+  } else {
+    // 所有参数都是 TreeData
+    fieldNames = DEFAULT_FIELD_NAMES;
+    trees = args as TreeData[];
+  }
+  
   const result: TreeData = [];
   
   for (const tree of trees) {
     if (Array.isArray(tree) && tree.length > 0) {
-      // 深拷贝每个树，避免修改原树
-      result.push(...cloneTree(tree, DEFAULT_FIELD_NAMES));
+      // 使用传入的 fieldNames 或默认值
+      result.push(...cloneTree(tree, fieldNames));
     }
   }
   
