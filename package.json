@@ -1,6 +1,6 @@
 {
   "name": "tree-processor",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Lightweight tree-structured data processing library with 50+ APIs (traversal, search, modification, conversion, query, analysis, validation). Supports ESM/CJS/UMD, tree-shaking, zero dependencies",
   "main": "dist/tree-processor.cjs.js",
   "module": "dist/tree-processor.esm.js",
