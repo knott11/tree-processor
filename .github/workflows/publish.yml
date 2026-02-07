@@ -221,6 +221,8 @@ jobs:
       - name: Configure npm for automation
         run: |
           echo "Configuring npm for automated publishing..."
+          # 清除可能存在的旧登录状态（避免认证冲突）
+          npm logout || true
           # 创建 .npmrc 文件，配置自动化发布
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           echo "registry=https://registry.npmjs.org/" >> ~/.npmrc

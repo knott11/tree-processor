@@ -24,6 +24,8 @@
     "test": "npm run build && vitest run src/index-all-dist.test.ts",
     "test:src": "vitest run src/index.test.ts",
     "test:dist": "npm run build && vitest run src/index-dist-only.test.ts",
+    "test:performance": "vitest run src/index.performance.test.ts",
+    "test:performance:all": "vitest run src/index.all-performance.test.ts",
     "test:coverage": "vitest --coverage",
     "update:badge": "node scripts/update-coverage-badge.js",
     "update:downloads": "node scripts/update-downloads-badge.js",

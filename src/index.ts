@@ -66,14 +66,14 @@ export function filterTree(
 ): TreeData {
   const result: TreeData = [];
   
-  function traverse(nodes: TreeData, parentIndex: number = 0): void {
+  function traverse(nodes: TreeData): void {
     nodes.forEach((node, index) => {
       if (filterFn(node, index)) {
         result.push(node);
       }
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        traverse(children, index);
+        traverse(children);
       }
     });
   }
@@ -123,7 +123,7 @@ export function pushTree(
   newNode: TreeNode,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
-  function findAndPush(nodes: TreeData): boolean {
+  function findParentAndPush(nodes: TreeData): boolean {
     for (const node of nodes) {
       if (node[fieldNames.id] === targetParentId) {
         if (!node[fieldNames.children]) {
@@ -134,7 +134,7 @@ export function pushTree(
       }
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        if (findAndPush(children)) {
+        if (findParentAndPush(children)) {
           return true;
         }
       }
@@ -142,7 +142,7 @@ export function pushTree(
     return false;
   }
   
-  return findAndPush(tree);
+  return findParentAndPush(tree);
 }
 
 /**
@@ -159,7 +159,7 @@ export function unshiftTree(
   newNode: TreeNode,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
-  function findAndUnshift(nodes: TreeData): boolean {
+  function findParentAndUnshift(nodes: TreeData): boolean {
     for (const node of nodes) {
       if (node[fieldNames.id] === targetParentId) {
         if (!node[fieldNames.children]) {
@@ -170,7 +170,7 @@ export function unshiftTree(
       }
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        if (findAndUnshift(children)) {
+        if (findParentAndUnshift(children)) {
           return true;
         }
       }
@@ -178,98 +178,98 @@ export function unshiftTree(
     return false;
   }
   
-  return findAndUnshift(tree);
+  return findParentAndUnshift(tree);
 }
 
 /**
  * 删除指定节点下的最后一个子节点
  * @param tree 树结构数据
- * @param rootId 目标节点ID
+ * @param targetNodeId 目标节点ID
  * @param fieldNames 自定义字段名配置
- * @returns 是否成功删除
+ * @returns 返回被删除的节点，如果节点不存在或没有子节点则返回 null
  */
 export function popTree(
   tree: TreeData,
-  rootId: any,
+  targetNodeId: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
-): boolean {
-  function findAndPop(nodes: TreeData): boolean {
+): TreeNode | null {
+  function findParentAndPop(nodes: TreeData): TreeNode | null {
     for (const node of nodes) {
-      if (node[fieldNames.id] === rootId) {
+      if (node[fieldNames.id] === targetNodeId) {
         const children = node[fieldNames.children];
         if (Array.isArray(children) && children.length > 0) {
-          children.pop();
-          return true;
+          return children.pop() || null;
         }
-        return false;
+        return null;
       }
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        if (findAndPop(children)) {
-          return true;
+        const result = findParentAndPop(children);
+        if (result !== null) {
+          return result;
         }
       }
     }
-    return false;
+    return null;
   }
   
-  return findAndPop(tree);
+  return findParentAndPop(tree);
 }
 
 /**
  * 删除指定节点下的第一个子节点
  * @param tree 树结构数据
- * @param rootId 目标节点ID
+ * @param targetNodeId 目标节点ID
  * @param fieldNames 自定义字段名配置
- * @returns 是否成功删除
+ * @returns 返回被删除的节点，如果节点不存在或没有子节点则返回 null
  */
 export function shiftTree(
   tree: TreeData,
-  rootId: any,
+  targetNodeId: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
-): boolean {
-  function findAndShift(nodes: TreeData): boolean {
+): TreeNode | null {
+  function findParentAndShift(nodes: TreeData): TreeNode | null {
     for (const node of nodes) {
-      if (node[fieldNames.id] === rootId) {
+      if (node[fieldNames.id] === targetNodeId) {
         const children = node[fieldNames.children];
         if (Array.isArray(children) && children.length > 0) {
-          children.shift();
-          return true;
+          return children.shift() || null;
         }
-        return false;
+        return null;
       }
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        if (findAndShift(children)) {
-          return true;
+        const result = findParentAndShift(children);
+        if (result !== null) {
+          return result;
         }
       }
     }
-    return false;
+    return null;
   }
   
-  return findAndShift(tree);
+  return findParentAndShift(tree);
 }
 
 /**
  * 检查树结构数据中是否存在满足条件的节点
  * @param tree 树结构数据
- * @param filterFn 过滤函数
+ * @param predicate 判断条件函数
  * @param fieldNames 自定义字段名配置
  * @returns 如果存在满足条件的节点返回 true，否则返回 false
  */
 export function someTree(
   tree: TreeData,
-  filterFn: (node: TreeNode) => boolean,
+  predicate: (node: TreeNode) => boolean,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
   for (const node of tree) {
-    if (filterFn(node)) {
+    if (predicate(node)) {
       return true;
     }
     const children = node[fieldNames.children];
     if (Array.isArray(children) && children.length > 0) {
-      if (someTree(children, filterFn, fieldNames)) {
+      if (someTree(children, predicate, fieldNames)) {
         return true;
       }
     }
@@ -280,22 +280,22 @@ export function someTree(
 /**
  * 检查树结构数据中是否所有节点都满足条件
  * @param tree 树结构数据
- * @param filterFn 过滤函数
+ * @param predicate 判断条件函数
  * @param fieldNames 自定义字段名配置
  * @returns 如果所有节点都满足条件返回 true，否则返回 false
  */
 export function everyTree(
   tree: TreeData,
-  filterFn: (node: TreeNode) => boolean,
+  predicate: (node: TreeNode) => boolean,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
   for (const node of tree) {
-    if (!filterFn(node)) {
+    if (!predicate(node)) {
       return false;
     }
     const children = node[fieldNames.children];
     if (Array.isArray(children) && children.length > 0) {
-      if (!everyTree(children, filterFn, fieldNames)) {
+      if (!everyTree(children, predicate, fieldNames)) {
         return false;
       }
     }
@@ -344,12 +344,12 @@ export function atTree(
   }
   
   // 处理负数索引
-  const adjustedIndex = nodeIndex >= 0 
+  const normalizedIndex = nodeIndex >= 0 
     ? nodeIndex 
     : children.length + nodeIndex;
   
-  if (adjustedIndex >= 0 && adjustedIndex < children.length) {
-    return children[adjustedIndex];
+  if (normalizedIndex >= 0 && normalizedIndex < children.length) {
+    return children[normalizedIndex];
   }
   
   return null;
@@ -500,33 +500,49 @@ export function getNodeDepth(
 /**
  * 树结构数据去重
  * @param tree 树结构数据
- * @param key 用于去重的键名（字符串）或键名数组（多字段联合去重）或自定义函数
+ * @param dedupKey 用于去重的键名（字符串）或键名数组（多字段联合去重）或自定义函数
  * @param fieldNames 自定义字段名配置
  * @returns 返回去重后的树结构数据
  */
 export function dedupTree(
   tree: TreeData,
-  key: string | string[] | ((node: TreeNode) => any),
+  dedupKey: string | string[] | ((node: TreeNode) => any),
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): TreeData {
-  const seenKeys = new Set<any>();
+  const visitedKeys = new Set<any>();
   
   // 生成去重键的函数
-  const getKey = (node: TreeNode): any => {
-    if (typeof key === 'function') {
+  const getDedupKey = (node: TreeNode): any => {
+    if (typeof dedupKey === 'function') {
       // 自定义函数
-      return key(node);
-    } else if (Array.isArray(key)) {
-      // 多字段联合去重：使用 JSON.stringify 生成组合键
-      const values = key.map(k => node[k]);
+      return dedupKey(node);
+    } else if (Array.isArray(dedupKey)) {
+      // 多字段联合去重：使用分隔符连接，性能优于 JSON.stringify
+      const values: any[] = [];
+      let hasValue = false;
+      
+      for (const key of dedupKey) {
+        const value = node[key];
+        if (value !== undefined && value !== null) {
+          hasValue = true;
+          // 将值转换为字符串，使用特殊分隔符避免冲突
+          // 使用 \u0001 作为分隔符（不可见字符，不会出现在普通数据中）
+          values.push(String(value));
+        } else {
+          values.push('');
+        }
+      }
+      
       // 如果所有值都是 undefined 或 null，返回特殊标记
-      if (values.every(v => v === undefined || v === null)) {
+      if (!hasValue) {
         return undefined;
       }
-      return JSON.stringify(values);
+      
+      // 使用分隔符连接，性能优于 JSON.stringify
+      return values.join('\u0001');
     } else {
       // 单字段去重（原有逻辑）
-      return node[key];
+      return node[dedupKey];
     }
   };
   
@@ -534,13 +550,13 @@ export function dedupTree(
     const uniqueNodes: TreeData = [];
     
     for (const node of nodes) {
-      const nodeKey = getKey(node);
+      const uniqueKey = getDedupKey(node);
       
-      if (nodeKey !== undefined && nodeKey !== null) {
-        if (seenKeys.has(nodeKey)) {
+      if (uniqueKey !== undefined && uniqueKey !== null) {
+        if (visitedKeys.has(uniqueKey)) {
           continue;
         }
-        seenKeys.add(nodeKey);
+        visitedKeys.add(uniqueKey);
       }
       
       const newNode: TreeNode = { ...node };
@@ -571,7 +587,7 @@ export function removeTree(
   targetId: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
-  function removeFromNodes(nodes: TreeData): boolean {
+  function removeNodeFromTree(nodes: TreeData): boolean {
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i];
       
@@ -584,7 +600,7 @@ export function removeTree(
       // 递归检查子节点
       const children = node[fieldNames.children];
       if (Array.isArray(children) && children.length > 0) {
-        if (removeFromNodes(children)) {
+        if (removeNodeFromTree(children)) {
           return true;
         }
       }
@@ -592,7 +608,7 @@ export function removeTree(
     return false;
   }
   
-  return removeFromNodes(tree);
+  return removeNodeFromTree(tree);
 }
 
 /**
@@ -867,8 +883,8 @@ export function isTreeData(
   }
 
   // 数组中的每个元素都必须是树结构
-  for (const item of data) {
-    if (!isSingleTreeData(item, fieldNames)) {
+  for (const node of data) {
+    if (!isSingleTreeData(node, fieldNames)) {
       return false;
     }
   }
@@ -878,21 +894,21 @@ export function isTreeData(
 
 /**
  * 检查单个节点是否是有效的树节点结构（轻量级，不递归检查子节点）
- * @param value 待检查的值
+ * @param node 待检查的节点
  * @param fieldNames 自定义字段名配置
  * @returns 如果是有效的树节点结构返回 true，否则返回 false
  */
 export function isValidTreeNode(
-  value: unknown,
+  node: unknown,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
-): value is TreeNode {
+): node is TreeNode {
   // 必须是对象，不能是 null、undefined、数组或基本类型
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!node || typeof node !== 'object' || Array.isArray(node)) {
     return false;
   }
   
   // 检查 children 字段
-  const children = (value as any)[fieldNames.children];
+  const children = (node as any)[fieldNames.children];
   
   // children 必须是 undefined 或数组
   return children === undefined || Array.isArray(children);
@@ -900,31 +916,31 @@ export function isValidTreeNode(
 
 /**
  * 检查节点是否是有效的树节点结构，并检测循环引用
- * @param value 待检查的值
+ * @param node 待检查的节点
  * @param fieldNames 自定义字段名配置
  * @param visited 已访问的节点集合（用于检测循环引用）
  * @returns 如果是有效的树节点结构且无循环引用返回 true，否则返回 false
  */
 export function isTreeNodeWithCircularCheck(
-  value: unknown,
+  node: unknown,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES,
   visited: WeakSet<object> = new WeakSet()
 ): boolean {
   // 必须是对象，不能是 null、undefined、数组或基本类型
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!node || typeof node !== 'object' || Array.isArray(node)) {
     return false;
   }
   
   // 检查循环引用
-  if (visited.has(value as object)) {
+  if (visited.has(node as object)) {
     return false; // 发现循环引用
   }
   
   // 标记为已访问
-  visited.add(value as object);
+  visited.add(node as object);
   
   // 检查 children 字段
-  const children = (value as any)[fieldNames.children];
+  const children = (node as any)[fieldNames.children];
   
   // 如果 children 字段存在
   if (children !== undefined) {
@@ -1019,13 +1035,29 @@ export function isRootNode(
   nodeId: any,
   fieldNames: FieldNames = DEFAULT_FIELD_NAMES
 ): boolean {
-  // 先检查节点是否存在
-  if (!includesTree(tree, nodeId, fieldNames)) {
-    return false;
+  // 合并遍历：同时检查节点是否存在并获取父节点，避免重复遍历
+  function findNodeAndParent(nodes: TreeData, parent: TreeNode | null = null): { found: boolean; isRoot: boolean } {
+    for (const node of nodes) {
+      // 如果当前节点就是目标节点
+      if (node[fieldNames.id] === nodeId) {
+        // 如果父节点为 null，说明是根节点
+        return { found: true, isRoot: parent === null };
+      }
+      
+      // 递归检查子节点
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        const result = findNodeAndParent(children, node);
+        if (result.found) {
+          return result;
+        }
+      }
+    }
+    return { found: false, isRoot: false };
   }
   
-  // 根节点没有父节点，getParentTree 返回 null
-  return getParentTree(tree, nodeId, fieldNames) === null;
+  const result = findNodeAndParent(tree);
+  return result.found && result.isRoot;
 }
 
 /**
@@ -1091,52 +1123,52 @@ export function convertBackTree(
     const nodeMap = new Map<any, TreeNode>();
     
     // 第一遍遍历：创建所有节点，并添加 children 字段
-    for (const item of data) {
-      const nodeId = item[fieldNames.id];
+    for (const node of data) {
+      const nodeId = node[fieldNames.id];
       if (nodeId === undefined || nodeId === null) {
         continue; // 跳过没有 id 的节点
       }
       
       // 创建节点副本，确保有 children 字段
-      const node: TreeNode = {
-        ...item,
+      const treeNode: TreeNode = {
+        ...node,
         [fieldNames.children]: [],
       };
-      nodeMap.set(nodeId, node);
+      nodeMap.set(nodeId, treeNode);
     }
     
     // 第二遍遍历：建立父子关系
     const rootNodes: TreeData = [];
     
-    for (const item of data) {
-      const nodeId = item[fieldNames.id];
-      const parentId = item[parentIdField];
+    for (const dataNode of data) {
+      const nodeId = dataNode[fieldNames.id];
+      const parentId = dataNode[parentIdField];
       
       if (nodeId === undefined || nodeId === null) {
         continue;
       }
       
-      const node = nodeMap.get(nodeId);
-      if (!node) {
+      const treeNode = nodeMap.get(nodeId);
+      if (!treeNode) {
         continue;
       }
       
       // 判断是否为根节点
       if (parentId === rootParentId || parentId === undefined || parentId === null) {
-        rootNodes.push(node);
+        rootNodes.push(treeNode);
       } else {
         // 查找父节点
         const parent = nodeMap.get(parentId);
         if (parent) {
           const children = parent[fieldNames.children];
           if (Array.isArray(children)) {
-            children.push(node);
+            children.push(treeNode);
           } else {
-            parent[fieldNames.children] = [node];
+            parent[fieldNames.children] = [treeNode];
           }
         } else {
           // 如果找不到父节点，将其作为根节点处理
-          rootNodes.push(node);
+          rootNodes.push(treeNode);
         }
       }
     }
@@ -1297,6 +1329,958 @@ export function convertToObjectTree(
 }
 
 /**
+ * 深拷贝树结构数据
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回深拷贝后的树结构数据（完全独立，不修改原树）
+ */
+export function cloneTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 递归深拷贝单个节点及其所有子节点
+  function deepCloneNode(node: TreeNode): TreeNode {
+    const cloned: TreeNode = { ...node };
+    
+    const children = node[fieldNames.children];
+    if (Array.isArray(children) && children.length > 0) {
+      cloned[fieldNames.children] = children.map(child => deepCloneNode(child));
+    }
+    
+    return cloned;
+  }
+  
+  // 深拷贝所有节点
+  return tree.map(node => deepCloneNode(node));
+}
+
+/**
+ * 浅拷贝树结构数据（只拷贝第一层，子节点共享引用）
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回浅拷贝后的树结构数据（第一层独立，子节点共享引用）
+ */
+export function shallowCloneTree(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 只拷贝第一层节点，子节点保持引用
+  return tree.map(node => ({ ...node }));
+}
+
+/**
+ * 从指定节点开始拷贝子树
+ * @param tree 树结构数据
+ * @param target 目标节点对象，例如 { id: 1 } 或 { name: 'xxx' } 或 { code: 'xxx' }，对象只能包含一个字段
+ * @param fieldNames 自定义字段名配置（可选，用于自定义 children 字段名，查找字段由 target 对象的键名决定）
+ * @returns 返回拷贝的子树（深拷贝），如果未找到节点返回空数组
+ */
+export function cloneSubtree(
+  tree: TreeData,
+  target: Record<string, any>,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 必须传对象，对象只能有一个键值对
+  if (!target || typeof target !== 'object' || Array.isArray(target) || target.constructor !== Object) {
+    throw new Error('cloneSubtree: 必须传入对象，例如 { id: 1 } 或 { name: "xxx" }');
+  }
+  
+  const keys = Object.keys(target);
+  if (keys.length === 0) {
+    return [];
+  }
+  if (keys.length > 1) {
+    throw new Error('cloneSubtree: 查找对象只能包含一个字段，例如 { id: 1 } 或 { name: "xxx" }');
+  }
+  
+  // 查找字段由对象的键名决定，不使用 fieldNames.id
+  const fieldToSearch = keys[0];
+  const targetValue = target[fieldToSearch];
+  
+  // 递归查找目标节点
+  function findNode(nodes: TreeData): TreeNode | null {
+    for (const node of nodes) {
+      if (node[fieldToSearch] === targetValue) {
+        return node;
+      }
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        const found = findNode(children);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+  
+  // 深拷贝单个节点及其所有子节点
+  function deepCloneNode(node: TreeNode): TreeNode {
+    const cloned: TreeNode = { ...node };
+    const children = node[fieldNames.children];
+    if (Array.isArray(children) && children.length > 0) {
+      cloned[fieldNames.children] = children.map(child => deepCloneNode(child));
+    }
+    return cloned;
+  }
+  
+  const targetNode = findNode(tree);
+  if (!targetNode) {
+    return [];
+  }
+  
+  // 返回拷贝的子树
+  return [deepCloneNode(targetNode)];
+}
+
+/**
+ * 拷贝树结构数据并对每个节点应用转换函数
+ * @param tree 树结构数据
+ * @param transform 转换函数，接收节点并返回转换后的节点
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回转换后的树结构数据（深拷贝，不修改原树）
+ */
+export function cloneWithTransform(
+  tree: TreeData,
+  transform: (node: TreeNode) => TreeNode,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 递归拷贝并转换节点
+  function cloneAndTransformNode(node: TreeNode): TreeNode {
+    // 先转换节点
+    const transformedNode = transform(node);
+    const cloned: TreeNode = { ...transformedNode };
+    
+    const children = node[fieldNames.children];
+    if (Array.isArray(children) && children.length > 0) {
+      cloned[fieldNames.children] = children.map(child => cloneAndTransformNode(child));
+    }
+    
+    return cloned;
+  }
+  
+  // 拷贝并转换所有节点
+  return tree.map(node => cloneAndTransformNode(node));
+}
+
+/**
+ * 连接多个树结构数据
+ * @param trees 多个树结构数据数组
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回连接后的树结构数据（深拷贝，不修改原树）
+ */
+export function concatTree(
+  ...trees: TreeData[]
+): TreeData {
+  const result: TreeData = [];
+  
+  for (const tree of trees) {
+    if (Array.isArray(tree) && tree.length > 0) {
+      // 深拷贝每个树，避免修改原树
+      result.push(...cloneTree(tree, DEFAULT_FIELD_NAMES));
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * 对树结构数据进行排序
+ * @param tree 树结构数据
+ * @param compareFn 比较函数，与 Array.sort 的 compareFn 相同
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回排序后的树结构数据（深拷贝，不修改原树）
+ */
+export function sortTree(
+  tree: TreeData,
+  compareFn?: (a: TreeNode, b: TreeNode) => number,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 深拷贝树
+  const clonedTree = cloneTree(tree, fieldNames);
+  
+  // 递归排序
+  function sortNodes(nodes: TreeData): void {
+    // 对当前层级排序
+    nodes.sort(compareFn);
+    
+    // 递归排序子节点
+    for (const node of nodes) {
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        sortNodes(children);
+      }
+    }
+  }
+  
+  sortNodes(clonedTree);
+  return clonedTree;
+}
+
+/**
+ * 对树结构数据进行归约操作
+ * @param tree 树结构数据
+ * @param reducer 归约函数，接收累加值和当前节点，返回新的累加值
+ * @param initialValue 初始值
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回归约后的结果
+ */
+export function reduceTree<T>(
+  tree: TreeData,
+  reducer: (accumulator: T, node: TreeNode) => T,
+  initialValue: T,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): T {
+  let accumulator = initialValue;
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      accumulator = reducer(accumulator, node);
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return accumulator;
+}
+
+/**
+ * 对树结构数据进行切片操作（仅对根节点进行切片，不递归处理子节点）
+ * @param tree 树结构数据
+ * @param start 起始索引（包含）
+ * @param end 结束索引（不包含），可选
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回切片后的树结构数据（深拷贝，不修改原树）
+ */
+export function sliceTree(
+  tree: TreeData,
+  start?: number,
+  end?: number,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeData {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return [];
+  }
+  
+  // 对根节点进行切片
+  const sliced = tree.slice(start, end);
+  
+  // 深拷贝切片后的节点
+  return cloneTree(sliced, fieldNames);
+}
+
+/**
+ * 聚合操作类型
+ */
+type AggregateOperation = 'sum' | 'avg' | 'max' | 'min' | 'count';
+
+/**
+ * 聚合配置
+ */
+interface AggregateConfig {
+  operation: AggregateOperation;
+  field?: string;
+}
+
+/**
+ * 聚合选项
+ */
+interface AggregateOptions {
+  groupBy: (node: TreeNode) => any;
+  aggregations: Record<string, AggregateConfig>;
+}
+
+/**
+ * 按分组聚合树结构数据
+ * @param tree 树结构数据
+ * @param options 聚合选项
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回按分组聚合的结果
+ */
+export function aggregateTree(
+  tree: TreeData,
+  options: AggregateOptions,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): Record<string, Record<string, any>> {
+  const result: Record<string, Record<string, any>> = {};
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      const groupKey = String(options.groupBy(node));
+      
+      if (!result[groupKey]) {
+        result[groupKey] = {};
+        // 初始化所有聚合字段
+        for (const [key, config] of Object.entries(options.aggregations)) {
+          if (config.operation === 'count') {
+            result[groupKey][key] = 0;
+          } else if (config.operation === 'avg') {
+            result[groupKey][key] = { sum: 0, count: 0 };
+          } else if (config.operation === 'max') {
+            result[groupKey][key] = config.field ? (node[config.field] ?? null) : null;
+          } else if (config.operation === 'min') {
+            result[groupKey][key] = config.field ? (node[config.field] ?? null) : null;
+          } else {
+            result[groupKey][key] = 0;
+          }
+        }
+      }
+      
+      // 执行聚合操作
+      for (const [key, config] of Object.entries(options.aggregations)) {
+        const { operation, field } = config;
+        
+        if (operation === 'count') {
+          result[groupKey][key]++;
+        } else if (operation === 'avg') {
+          if (field) {
+            const value = node[field] ?? 0;
+            result[groupKey][key].sum += value;
+            result[groupKey][key].count++;
+          }
+        } else if (operation === 'max') {
+          if (field) {
+            const value = node[field];
+            if (value !== undefined && value !== null) {
+              if (result[groupKey][key] === null || value > result[groupKey][key]) {
+                result[groupKey][key] = value;
+              }
+            }
+          }
+        } else if (operation === 'min') {
+          if (field) {
+            const value = node[field];
+            if (value !== undefined && value !== null) {
+              if (result[groupKey][key] === null || value < result[groupKey][key]) {
+                result[groupKey][key] = value;
+              }
+            }
+          }
+        } else if (operation === 'sum') {
+          if (field) {
+            result[groupKey][key] += node[field] ?? 0;
+          }
+        }
+      }
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  
+  // 处理平均值
+  for (const groupKey in result) {
+    for (const [key, config] of Object.entries(options.aggregations)) {
+      if (config.operation === 'avg' && result[groupKey][key].count > 0) {
+        result[groupKey][key] = result[groupKey][key].sum / result[groupKey][key].count;
+      } else if (config.operation === 'avg' && result[groupKey][key].count === 0) {
+        result[groupKey][key] = 0;
+      }
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * 按字段分组树结构数据
+ * @param tree 树结构数据
+ * @param field 分组字段名
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回按字段分组的节点数组
+ */
+export function groupTree(
+  tree: TreeData,
+  field: string,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): Record<string, TreeNode[]> {
+  const result: Record<string, TreeNode[]> = {};
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      const groupKey = String(node[field] ?? '');
+      if (!result[groupKey]) {
+        result[groupKey] = [];
+      }
+      result[groupKey].push(node);
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return result;
+}
+
+/**
+ * 按条件分组树结构数据
+ * @param tree 树结构数据
+ * @param groupFn 分组函数，接收节点并返回分组键
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回按条件分组的节点数组
+ */
+export function groupByTree(
+  tree: TreeData,
+  groupFn: (node: TreeNode) => any,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): Record<string, TreeNode[]> {
+  const result: Record<string, TreeNode[]> = {};
+  
+  function traverse(nodes: TreeData): void {
+    for (const node of nodes) {
+      const groupKey = String(groupFn(node) ?? '');
+      if (!result[groupKey]) {
+        result[groupKey] = [];
+      }
+      result[groupKey].push(node);
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children);
+      }
+    }
+  }
+  
+  traverse(tree);
+  return result;
+}
+
+/**
+ * 计算树结构数据中某个字段的总和
+ * @param tree 树结构数据
+ * @param field 字段名
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回字段值的总和
+ */
+export function sumTree(
+  tree: TreeData,
+  field: string,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number {
+  return reduceTree(
+    tree,
+    (sum, node) => sum + (node[field] ?? 0),
+    0,
+    fieldNames
+  );
+}
+
+/**
+ * 计算树结构数据中某个字段的平均值
+ * @param tree 树结构数据
+ * @param field 字段名
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回字段值的平均值
+ */
+export function avgTree(
+  tree: TreeData,
+  field: string,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number {
+  let sum = 0;
+  let count = 0;
+  
+  reduceTree(
+    tree,
+    (_, node) => {
+      const value = node[field];
+      if (value !== undefined && value !== null) {
+        sum += value;
+        count++;
+      }
+      return null;
+    },
+    null,
+    fieldNames
+  );
+  
+  return count > 0 ? sum / count : 0;
+}
+
+/**
+ * 获取树结构数据中某个字段的最大值
+ * @param tree 树结构数据
+ * @param field 字段名
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回最大值，如果树为空返回 null
+ */
+export function maxTree(
+  tree: TreeData,
+  field: string,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number | null {
+  let max: number | null = null;
+  let hasValue = false;
+  
+  reduceTree(
+    tree,
+    (_, node) => {
+      const value = node[field];
+      if (value !== undefined && value !== null && typeof value === 'number') {
+        if (!hasValue || value > max!) {
+          max = value;
+          hasValue = true;
+        }
+      }
+      return null;
+    },
+    null,
+    fieldNames
+  );
+  
+  return hasValue ? max : null;
+}
+
+/**
+ * 获取树结构数据中某个字段的最小值
+ * @param tree 树结构数据
+ * @param field 字段名
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回最小值，如果树为空返回 null
+ */
+export function minTree(
+  tree: TreeData,
+  field: string,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number | null {
+  let min: number | null = null;
+  let hasValue = false;
+  
+  reduceTree(
+    tree,
+    (_, node) => {
+      const value = node[field];
+      if (value !== undefined && value !== null && typeof value === 'number') {
+        if (!hasValue || value < min!) {
+          min = value;
+          hasValue = true;
+        }
+      }
+      return null;
+    },
+    null,
+    fieldNames
+  );
+  
+  return hasValue ? min : null;
+}
+
+/**
+ * 统计树结构数据中满足条件的节点数量
+ * @param tree 树结构数据
+ * @param conditionFn 统计条件函数，可选，不传则统计所有节点
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回节点数量
+ */
+export function countTree(
+  tree: TreeData,
+  conditionFn?: (node: TreeNode) => boolean,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): number {
+  if (!conditionFn) {
+    // 统计所有节点
+    return reduceTree(
+      tree,
+      (count) => count + 1,
+      0,
+      fieldNames
+    );
+  }
+  
+  // 统计满足条件的节点
+  return reduceTree(
+    tree,
+    (count, node) => count + (conditionFn(node) ? 1 : 0),
+    0,
+    fieldNames
+  );
+}
+
+/**
+ * 树结构统计信息
+ */
+export interface TreeStats {
+  totalNodes: number;
+  leafNodes: number;
+  maxDepth: number;
+  minDepth: number;
+  avgDepth: number;
+  levels: number;
+}
+
+/**
+ * 获取树结构数据的统计信息
+ * @param tree 树结构数据
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回统计信息
+ */
+export function getTreeStats(
+  tree: TreeData,
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeStats {
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return {
+      totalNodes: 0,
+      leafNodes: 0,
+      maxDepth: 0,
+      minDepth: 0,
+      avgDepth: 0,
+      levels: 0,
+    };
+  }
+  
+  let totalNodes = 0;
+  let leafNodes = 0;
+  let maxDepth = 0;
+  let minDepth = Infinity;
+  let depthSum = 0;
+  
+  function traverse(nodes: TreeData, depth: number): void {
+    for (const node of nodes) {
+      totalNodes++;
+      depthSum += depth;
+      
+      if (depth > maxDepth) {
+        maxDepth = depth;
+      }
+      if (depth < minDepth) {
+        minDepth = depth;
+      }
+      
+      const children = node[fieldNames.children];
+      if (Array.isArray(children) && children.length > 0) {
+        traverse(children, depth + 1);
+      } else {
+        leafNodes++;
+      }
+    }
+  }
+  
+  traverse(tree, 1);
+  
+  return {
+    totalNodes,
+    leafNodes,
+    maxDepth,
+    minDepth: minDepth === Infinity ? 0 : minDepth,
+    avgDepth: totalNodes > 0 ? depthSum / totalNodes : 0,
+    levels: maxDepth,
+  };
+}
+
+/**
+ * 树结构分析选项
+ */
+export interface AnalyzeTreeOptions {
+  // 基础统计
+  includeBasic?: boolean;  // 包含基础统计（totalNodes, leafNodes, internalNodes, maxDepth, minDepth, avgDepth, levels）
+  includeLevelAnalysis?: boolean;  // 包含层级分析（byLevel, maxWidth, avgWidth, widthByLevel）
+  includeBranchingFactor?: boolean;  // 包含分支因子分析（avgBranchingFactor, maxBranchingFactor, minBranchingFactor, branchingFactorDistribution）
+  includeDepthDistribution?: boolean;  // 包含深度分布（depthDistribution）
+  includeBalanceAnalysis?: boolean;  // 包含平衡性分析（depthVariance, isBalanced, balanceRatio）
+  includePathAnalysis?: boolean;  // 包含路径分析（avgPathLength, maxPathLength, minPathLength）
+  includeLeafAnalysis?: boolean;  // 包含叶子节点分析（leafNodeRatio, leafNodesByLevel）
+}
+
+/**
+ * 树结构分析结果
+ */
+export interface TreeAnalysis {
+  // 基础统计
+  totalNodes: number;
+  leafNodes: number;
+  internalNodes: number;
+  maxDepth: number;
+  minDepth: number;
+  avgDepth: number;
+  levels: number;
+  
+  // 层级分析
+  byLevel: Record<number, number>;
+  maxWidth: number;
+  avgWidth: number;
+  widthByLevel: Record<number, number>;
+  
+  // 分支因子分析
+  avgBranchingFactor: number;
+  maxBranchingFactor: number;
+  minBranchingFactor: number;
+  branchingFactorDistribution: Record<number, number>;
+  
+  // 深度分布
+  depthDistribution: Record<number, number>;
+  
+  // 平衡性分析
+  depthVariance: number;
+  isBalanced: boolean;
+  balanceRatio: number;
+  
+  // 路径分析
+  avgPathLength: number;
+  maxPathLength: number;
+  minPathLength: number;
+  
+  // 叶子节点分析
+  leafNodeRatio: number;
+  leafNodesByLevel: Record<number, number>;
+}
+
+/**
+ * 分析树结构数据的分布情况，提供全面的统计分析
+ * @param tree 树结构数据
+ * @param options 分析选项，可指定需要计算的统计项（可选，默认计算所有统计项）
+ * @param fieldNames 自定义字段名配置
+ * @returns 返回详细的分析结果
+ */
+export function analyzeTree(
+  tree: TreeData,
+  options: AnalyzeTreeOptions = {},
+  fieldNames: FieldNames = DEFAULT_FIELD_NAMES
+): TreeAnalysis {
+  // 如果没有指定选项，默认计算所有统计项（向后兼容）
+  const {
+    includeBasic = true,
+    includeLevelAnalysis = true,
+    includeBranchingFactor = true,
+    includeDepthDistribution = true,
+    includeBalanceAnalysis = true,
+    includePathAnalysis = true,
+    includeLeafAnalysis = true,
+  } = options;
+  // 初始化结果对象
+  const createEmptyResult = (): TreeAnalysis => ({
+    totalNodes: 0,
+    leafNodes: 0,
+    internalNodes: 0,
+    maxDepth: 0,
+    minDepth: 0,
+    avgDepth: 0,
+    levels: 0,
+    byLevel: {},
+    maxWidth: 0,
+    avgWidth: 0,
+    widthByLevel: {},
+    avgBranchingFactor: 0,
+    maxBranchingFactor: 0,
+    minBranchingFactor: 0,
+    branchingFactorDistribution: {},
+    depthDistribution: {},
+    depthVariance: 0,
+    isBalanced: false,
+    balanceRatio: 0,
+    avgPathLength: 0,
+    maxPathLength: 0,
+    minPathLength: 0,
+    leafNodeRatio: 0,
+    leafNodesByLevel: {},
+  });
+
+  if (!Array.isArray(tree) || tree.length === 0) {
+    return createEmptyResult();
+  }
+  
+  // 根据选项初始化需要计算的统计项
+  const byLevel: Record<number, number> = includeLevelAnalysis ? {} : {};
+  const widthByLevel: Record<number, number> = includeLevelAnalysis ? {} : {};
+  const depthDistribution: Record<number, number> = includeDepthDistribution ? {} : {};
+  const leafNodesByLevel: Record<number, number> = includeLeafAnalysis ? {} : {};
+  const branchingFactorDistribution: Record<number, number> = includeBranchingFactor ? {} : {};
+  
+  let totalNodes = 0;
+  let leafNodes = 0;
+  let internalNodes = 0;
+  let maxDepth = 0;
+  let minDepth = Infinity;
+  let depthSum = 0;
+  let maxWidth = 0;
+  let totalWidth = 0;
+  let levelCount = 0;
+  let totalBranchingFactor = 0;
+  let nodesWithChildren = 0;
+  let maxBranchingFactor = 0;
+  let minBranchingFactor = Infinity;
+  let pathLengthSum = 0;
+  let maxPathLength = 0;
+  let minPathLength = Infinity;
+  // 只在需要计算平衡性分析时存储深度值
+  const depths: number[] = includeBalanceAnalysis ? [] : [];
+  
+  function traverse(nodes: TreeData, depth: number, pathLength: number): void {
+    // 统计当前层级的节点数和宽度（仅在需要时计算）
+    const currentLevelWidth = nodes.length;
+    
+    if (includeLevelAnalysis) {
+      byLevel[depth] = (byLevel[depth] || 0) + currentLevelWidth;
+      widthByLevel[depth] = (widthByLevel[depth] || 0) + currentLevelWidth;
+      
+      if (currentLevelWidth > maxWidth) {
+        maxWidth = currentLevelWidth;
+      }
+      totalWidth += currentLevelWidth;
+      levelCount++;
+    }
+    
+    for (const node of nodes) {
+      totalNodes++;
+      const currentDepth = depth + 1;
+      
+      if (includeBasic) {
+        depthSum += currentDepth;
+        if (currentDepth > maxDepth) {
+          maxDepth = currentDepth;
+        }
+        if (currentDepth < minDepth) {
+          minDepth = currentDepth;
+        }
+      }
+      
+      // 只在需要计算平衡性分析时存储深度值
+      if (includeBalanceAnalysis) {
+        depths.push(currentDepth);
+      }
+      
+      // 统计深度分布（仅在需要时计算）
+      if (includeDepthDistribution) {
+        depthDistribution[currentDepth] = (depthDistribution[currentDepth] || 0) + 1;
+      }
+      
+      // 路径长度分析（仅在需要时计算）
+      if (includePathAnalysis) {
+        const currentPathLength = pathLength + 1;
+        pathLengthSum += currentPathLength;
+        if (currentPathLength > maxPathLength) {
+          maxPathLength = currentPathLength;
+        }
+        if (currentPathLength < minPathLength) {
+          minPathLength = currentPathLength;
+        }
+      }
+      
+      const children = node[fieldNames.children];
+      const childCount = Array.isArray(children) ? children.length : 0;
+      
+      if (childCount > 0) {
+        if (includeBasic) {
+          internalNodes++;
+        }
+        
+        if (includeBranchingFactor) {
+          totalBranchingFactor += childCount;
+          nodesWithChildren++;
+          
+          // 分支因子分布
+          branchingFactorDistribution[childCount] = (branchingFactorDistribution[childCount] || 0) + 1;
+          
+          if (childCount > maxBranchingFactor) {
+            maxBranchingFactor = childCount;
+          }
+          if (childCount < minBranchingFactor) {
+            minBranchingFactor = childCount;
+          }
+        }
+        
+        const nextPathLength = includePathAnalysis ? pathLength + 1 : pathLength;
+        traverse(children, currentDepth, nextPathLength);
+      } else {
+        if (includeBasic) {
+          leafNodes++;
+        }
+        
+        // 叶子节点分析（仅在需要时计算）
+        if (includeLeafAnalysis) {
+          leafNodesByLevel[currentDepth] = (leafNodesByLevel[currentDepth] || 0) + 1;
+        }
+      }
+    }
+  }
+  
+  traverse(tree, 0, 0);
+  
+  // 计算平均值（仅在需要时计算）
+  const avgDepth = includeBasic && totalNodes > 0 ? depthSum / totalNodes : 0;
+  const avgWidth = includeLevelAnalysis && levelCount > 0 ? totalWidth / levelCount : 0;
+  const avgBranchingFactor = includeBranchingFactor && nodesWithChildren > 0 ? totalBranchingFactor / nodesWithChildren : 0;
+  const avgPathLength = includePathAnalysis && totalNodes > 0 ? pathLengthSum / totalNodes : 0;
+  const leafNodeRatio = includeLeafAnalysis && totalNodes > 0 ? leafNodes / totalNodes : 0;
+  
+  // 计算深度方差（平衡性指标，仅在需要时计算）
+  let depthVariance = 0;
+  let isBalanced = false;
+  let balanceRatio = 0;
+  
+  if (includeBalanceAnalysis) {
+    if (depths.length > 0) {
+      const averageDepth = avgDepth;
+      const squaredDiffs = depths.reduce((sum, depth) => sum + Math.pow(depth - averageDepth, 2), 0);
+      depthVariance = squaredDiffs / depths.length;
+    }
+    
+    // 判断是否平衡（深度方差较小，且最大深度和最小深度差距不大）
+    const depthRange = maxDepth - minDepth;
+    isBalanced = depthVariance < 2 && depthRange <= 2;
+    balanceRatio = maxDepth > 0 ? minDepth / maxDepth : 0;
+  }
+  
+  return {
+    totalNodes: includeBasic ? totalNodes : 0,
+    leafNodes: includeBasic ? leafNodes : 0,
+    internalNodes: includeBasic ? internalNodes : 0,
+    maxDepth: includeBasic ? maxDepth : 0,
+    minDepth: includeBasic ? (minDepth === Infinity ? 0 : minDepth) : 0,
+    avgDepth,
+    levels: includeBasic ? maxDepth : 0,
+    byLevel: includeLevelAnalysis ? byLevel : {},
+    maxWidth: includeLevelAnalysis ? maxWidth : 0,
+    avgWidth,
+    widthByLevel: includeLevelAnalysis ? widthByLevel : {},
+    avgBranchingFactor,
+    maxBranchingFactor: includeBranchingFactor ? (maxBranchingFactor === 0 ? 0 : maxBranchingFactor) : 0,
+    minBranchingFactor: includeBranchingFactor ? (minBranchingFactor === Infinity ? 0 : minBranchingFactor) : 0,
+    branchingFactorDistribution: includeBranchingFactor ? branchingFactorDistribution : {},
+    depthDistribution: includeDepthDistribution ? depthDistribution : {},
+    depthVariance,
+    isBalanced,
+    balanceRatio,
+    avgPathLength,
+    maxPathLength: includePathAnalysis ? maxPathLength : 0,
+    minPathLength: includePathAnalysis ? (minPathLength === Infinity ? 0 : minPathLength) : 0,
+    leafNodeRatio,
+    leafNodesByLevel: includeLeafAnalysis ? leafNodesByLevel : {},
+  };
+}
+
+/**
  * 默认导出对象，包含所有方法
  */
 const treeProcessor = {
@@ -1335,6 +2319,24 @@ const treeProcessor = {
   convertToMapTree,
   convertToLevelArrayTree,
   convertToObjectTree,
+  cloneTree,
+  shallowCloneTree,
+  cloneSubtree,
+  cloneWithTransform,
+  concatTree,
+  sortTree,
+  reduceTree,
+  sliceTree,
+  aggregateTree,
+  groupTree,
+  groupByTree,
+  sumTree,
+  avgTree,
+  maxTree,
+  minTree,
+  countTree,
+  getTreeStats,
+  analyzeTree,
 };
 
 export default treeProcessor;

@@ -10,11 +10,11 @@
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
 ![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
-![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
+![bundle size](https://img.shields.io/badge/bundle-15KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
 
-一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，支持 tree-shaking，每个格式打包体积约 **8.2-8.5 KB**（ESM: 8.24 KB，CJS: 8.51 KB，UMD: 8.52 KB）。
+一个轻量级的树结构数据处理工具库，使用 TypeScript 编写，提供50+ API，包括遍历、查找、修改、转换、查询、分析、验证等完整功能。
 
 
 </div>
@@ -26,28 +26,26 @@
 - [安装](#-安装)
 - [快速开始](#-快速开始)
 - [API 文档](#-api-文档)
-  - [遍历方法](#遍历方法)
-  - [查找方法](#查找方法)
-  - [访问方法](#访问方法)
-  - [修改方法](#修改方法)
-  - [转换方法](#转换方法)
-  - [查询方法](#查询方法)
-  - [验证方法](#验证方法)
+  - [遍历操作方法](#遍历操作方法)
+  - [条件查找方法](#条件查找方法)
+  - [索引访问方法](#索引访问方法)
+  - [节点操作方法](#节点操作方法)
+  - [格式转换方法](#格式转换方法)
+  - [克隆复制方法](#克隆复制方法)
+  - [关系查询方法](#关系查询方法)
+  - [数据验证方法](#数据验证方法)
+  - [聚合分析方法](#聚合分析方法)
 - [自定义字段名](#自定义字段名)
 - [测试](#测试)
 - [开发](#开发)
 
 ## ✨ 特性
 
-- **轻量级** - 每个格式打包体积仅 8.2-8.5 KB（ESM: 8.24 KB，CJS: 8.51 KB，UMD: 8.52 KB），对项目体积影响极小
-- **支持 Tree-shaking** - 支持按需导入，只打包实际使用的代码，进一步减小打包体积
-- **完整的 TypeScript 支持** - 提供完整的类型定义和智能提示，提升开发体验
-- **灵活的自定义字段名** - 支持自定义 children 和 id 字段名，适配各种数据结构
-- **零依赖** - 无任何外部依赖，开箱即用，无需担心依赖冲突
-- **完善的测试覆盖** - 包含 328 个测试用例，测试覆盖率达到 99%+（语句覆盖率 99%，分支覆盖率 98.41%，函数覆盖率 100%，行覆盖率 98.99%），覆盖基础功能、边界情况、异常处理、复杂场景等
-- **丰富的 API** - 提供 32+ 个方法，包含类似数组的 API（map、filter、find、some、every等），以及树结构特有的操作（获取父子节点、深度计算、数据验证、格式转换等），涵盖遍历、查找、修改、转换、判断等完整场景
-
-**已支持的方法：** mapTree、forEachTree、filterTree、findTree、pushTree、unshiftTree、popTree、shiftTree、someTree、everyTree、includesTree、atTree、indexOfTree、atIndexOfTree、dedupTree、removeTree、getParentTree、getChildrenTree、getSiblingsTree、getNodeDepthMap、getNodeDepth、isLeafNode、isRootNode、isEmptyTreeData、isEmptySingleTreeData、isTreeData、isSingleTreeData、isValidTreeNode、isTreeNodeWithCircularCheck、isSafeTreeDepth、convertToArrayTree、convertBackTree、convertToMapTree、convertToLevelArrayTree、convertToObjectTree。每个方法的最后一个参数可以自定义 children 和 id 的属性名。
+- **多格式支持** - 提供 ESM、CJS、UMD 格式，体积仅 14.9-15.2 KB，支持 Tree-shaking，按需导入
+- **零依赖** - 无外部依赖，开箱即用
+- **高性能** - 中等规模树（~120节点）平均执行时间 < 0.03ms
+- **功能完整** - 50+ API，覆盖遍历、查找、修改、转换、查询、分析、验证等完整功能
+- **测试完善** - 447 个测试用例，99%+ 覆盖率
 
 ### 💡 使用场景
 
@@ -153,7 +151,9 @@ const treeData = [
 
 ---
 
-## 遍历方法
+## 遍历操作方法
+
+遍历树结构数据并对每个节点执行操作的方法。
 
 ### mapTree
 
@@ -202,7 +202,9 @@ console.log(nodeCount) // 节点总数
 
 ---
 
-## 查找方法
+## 条件查找方法
+
+通过条件或谓词函数查找节点的方法。
 
 ### filterTree
 
@@ -285,7 +287,9 @@ console.log(allHaveName) // 根据实际数据返回 true 或 false
 
 ---
 
-## 访问方法
+## 索引访问方法
+
+通过位置索引或索引路径访问节点的方法。
 
 ### atTree
 
@@ -345,7 +349,9 @@ console.log(invalidPath) // null
 
 ---
 
-## 修改方法
+## 节点操作方法
+
+对树结构进行增删改操作的方法（添加、删除、移除节点等）。
 
 ### pushTree
 
@@ -375,26 +381,30 @@ console.log(treeData) // 新节点已添加到 children 数组开头
 
 ### popTree
 
-删除指定节点下的最后一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
+删除指定节点下的最后一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 null。
 
 ```javascript
 // 删除ID为1的节点下的最后一个子节点
 const removedNode = t.popTree(treeData, 1)
-console.log(removedNode) // 返回被删除的节点对象，或 false
+console.log(removedNode) // 返回被删除的节点对象，或 null
 
 // 尝试删除不存在的节点下的子节点
 const popFailed = t.popTree(treeData, 999)
-console.log(popFailed) // false
+console.log(popFailed) // null
 ```
 
 ### shiftTree
 
-删除指定节点下的第一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 false。
+删除指定节点下的第一个子节点。返回被删除的节点，如果节点不存在或没有子节点则返回 null。
 
 ```javascript
 // 删除ID为1的节点下的第一个子节点
 const shiftedNode = t.shiftTree(treeData, 1)
-console.log(shiftedNode) // 返回被删除的节点对象，或 false
+console.log(shiftedNode) // 返回被删除的节点对象，或 null
+
+// 尝试删除不存在的节点下的子节点
+const shiftFailed = t.shiftTree(treeData, 999)
+console.log(shiftFailed) // null
 ```
 
 ### removeTree
@@ -409,13 +419,97 @@ console.log(removeSuccess) // true 表示删除成功，false 表示未找到节
 console.log(treeData) // 删除后的树结构
 ```
 
+### concatTree
+
+连接多个树结构数据，返回连接后的新树（深拷贝）。
+
+```javascript
+const tree1 = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+const tree2 = [
+  { id: 3, name: 'node3' }
+]
+
+// 连接多个树
+const result = t.concatTree(tree1, tree2)
+console.log(result) // [{ id: 1, name: 'node1' }, { id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**参数说明：**
+- `...trees`: 多个树结构数据数组（可变参数）
+
+**注意事项：**
+- 所有树都会被深拷贝，不会修改原树
+- 支持连接任意数量的树结构
+
+### sortTree
+
+对树结构数据进行排序，递归排序所有层级。
+
+```javascript
+const tree = [
+  { id: 3, name: 'node3' },
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+
+// 按 id 排序
+const sorted = t.sortTree(tree, (a, b) => a.id - b.id)
+console.log(sorted) 
+// [{ id: 1, name: 'node1' }, { id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `compareFn`: 比较函数，与 `Array.sort` 的 `compareFn` 相同（可选）
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 递归排序所有层级的节点
+- 返回排序后的新树（深拷贝），不修改原树
+- 如果不提供 `compareFn`，将使用默认排序
+
+### sliceTree
+
+对树结构数据的根节点进行切片操作（类似数组的 `slice`）。
+
+```javascript
+const tree = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' },
+  { id: 3, name: 'node3' }
+]
+
+// 切片：获取索引 1 到 3 的节点
+const sliced = t.sliceTree(tree, 1, 3)
+console.log(sliced) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+
+// 支持负数索引
+const lastTwo = t.sliceTree(tree, -2)
+console.log(lastTwo) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `start`: 起始索引（包含），可选
+- `end`: 结束索引（不包含），可选
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 仅对根节点进行切片，不递归处理子节点
+- 返回切片后的新树（深拷贝），不修改原树
+- 支持负数索引（从末尾开始计算）
+- 子节点结构会被完整保留
+
 ### dedupTree
 
 树结构对象数组去重方法，根据指定的键去除重复节点。保留第一次出现的节点。支持单字段、多字段联合去重和自定义函数。
 
 **参数说明：**
 - `tree`: 树结构数据
-- `key`: 用于去重的键名，支持三种类型：
+- `dedupKey`: 用于去重的键名，支持三种类型：
   - `string`: 单字段去重（如 `'id'`）
   - `string[]`: 多字段联合去重（如 `['id', 'type']`）
   - `(node: TreeNode) => any`: 自定义函数，返回用于去重的值
@@ -447,13 +541,16 @@ const uniqueByComplex = t.dedupTree(treeData, (node) => `${node.id}-${node.type}
 ```
 
 **注意事项：**
-- 如果 key 值为 `undefined` 或 `null`，节点不会被去重（会全部保留）
+- 如果 dedupKey 值为 `undefined` 或 `null`，节点不会被去重（会全部保留）
 - 多字段联合去重使用字段值的组合来判断重复
 - 递归处理所有层级的子节点
+- **性能优化**：多字段联合去重已优化，使用高效的分隔符连接方式替代 JSON.stringify，提升性能
 
 ---
 
-## 转换方法
+## 格式转换方法
+
+在不同数据格式之间转换的方法（数组、Map、对象等格式转换）。
 
 ### convertToArrayTree
 
@@ -727,7 +824,169 @@ console.log(treeFromRecord) // 正确转换为树结构
 
 ---
 
-## 查询方法
+## 克隆复制方法
+
+复制树结构数据的方法（深拷贝、浅拷贝、子树拷贝等）。
+
+### cloneTree
+
+深拷贝树结构数据，返回完全独立的副本，不修改原树。
+
+```javascript
+const original = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// 深拷贝
+const cloned = t.cloneTree(original)
+
+// 修改克隆的树不会影响原树
+cloned[0].name = 'modified'
+console.log(original[0].name) // 'node1'
+console.log(cloned[0].name)   // 'modified'
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 递归深拷贝所有层级的节点和子节点
+- 返回的树与原树完全独立，修改不会相互影响
+- 支持自定义字段名配置
+
+### shallowCloneTree
+
+浅拷贝树结构数据（只拷贝第一层，子节点共享引用）。性能比深拷贝更好，适合只需要拷贝顶层结构的场景。
+
+```javascript
+const original = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// 浅拷贝
+const cloned = t.shallowCloneTree(original)
+
+// 修改第一层不会影响原树
+cloned[0].name = 'modified'
+console.log(original[0].name) // 'node1'
+
+// 但子节点共享引用，修改子节点会影响原树
+cloned[0].children[0].name = 'changed'
+console.log(original[0].children[0].name) // 'changed'
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 只拷贝第一层节点，子节点保持引用共享
+- 性能比深拷贝更好，适合只需要顶层独立的场景
+- 修改子节点会影响原树
+
+### cloneSubtree
+
+从指定节点开始拷贝子树。返回包含目标节点及其所有子节点的深拷贝。支持按任意字段查找节点。
+
+```javascript
+const tree = [
+  {
+    id: 1,
+    name: 'root',
+    children: [
+      { id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] },
+      { id: 3, name: 'sub2' }
+    ]
+  }
+]
+
+// 按 id 字段查找
+const subtree1 = t.cloneSubtree(tree, { id: 2 })
+console.log(subtree1)
+// [{ id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] }]
+
+// 按 name 字段查找
+const subtree2 = t.cloneSubtree(tree, { name: 'sub1' })
+console.log(subtree2)
+// [{ id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] }]
+
+// 按其他字段查找（如 code）
+const treeWithCode = [
+  {
+    id: 1,
+    code: 'A001',
+    children: [
+      { id: 2, code: 'B001', children: [{ id: 4, code: 'C001' }] }
+    ]
+  }
+]
+const subtree3 = t.cloneSubtree(treeWithCode, { code: 'B001' })
+console.log(subtree3)
+// [{ id: 2, code: 'B001', children: [{ id: 4, code: 'C001' }] }]
+
+// 支持自定义 children 字段名
+const customTree = [
+  { nodeId: 1, subNodes: [{ nodeId: 2 }] }
+]
+const subtree4 = t.cloneSubtree(customTree, { nodeId: 2 }, { children: 'subNodes', id: 'nodeId' })
+console.log(subtree4)
+// [{ nodeId: 2 }]
+
+// 修改拷贝的子树不会影响原树
+subtree1[0].name = 'modified'
+console.log(tree[0].children[0].name) // 'sub1'
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `target`: 目标节点对象，例如 `{ id: 1 }` 或 `{ name: 'sub1' }` 或 `{ code: 'B001' }`，对象只能包含一个字段
+- `fieldNames`: 自定义字段名配置（可选，用于自定义 `children` 字段名，查找字段由 `target` 对象的键名决定）
+
+**注意事项：**
+- 返回包含目标节点的子树（深拷贝）
+- 如果未找到目标节点，返回空数组
+- 递归深拷贝所有子节点
+- 必须传入对象形式，查找字段由对象的键名决定（如 `{ id: 1 }` 表示按 `id` 字段查找，`{ name: 'xxx' }` 表示按 `name` 字段查找）
+- `fieldNames` 参数用于自定义 `children` 字段名，定义 `id` 不生效
+
+### cloneWithTransform
+
+拷贝树结构数据并对每个节点应用转换函数。适合在拷贝的同时修改节点数据。
+
+```javascript
+const tree = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// 拷贝并添加 label 字段
+const cloned = t.cloneWithTransform(tree, (node) => ({
+  ...node,
+  label: node.name,
+  processed: true
+}))
+
+console.log(cloned[0].label) // 'node1'
+console.log(cloned[0].processed) // true
+console.log(cloned[0].children[0].label) // 'node2'
+console.log(tree[0].label) // undefined（原树未修改）
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `transform`: 转换函数，接收节点并返回转换后的节点
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 递归转换所有层级的节点
+- 返回转换后的树（深拷贝），不修改原树
+- 转换函数应该返回新的节点对象
+
+---
+
+## 关系查询方法
+
+获取节点之间关系信息的方法（父子关系、兄弟关系、深度等）。
 
 ### getParentTree
 
@@ -878,7 +1137,9 @@ console.log(depth) // 2
 
 ---
 
-## 验证方法
+## 数据验证方法
+
+验证树结构数据有效性和节点类型的方法。
 
 ### isLeafNode
 
@@ -929,6 +1190,8 @@ console.log(t.isLeafNode(customNode, fieldNames)) // true
 ### isRootNode
 
 检查节点是否是根节点（没有父节点）。根节点是树结构数据数组中的顶层节点。
+
+**性能优化**：已优化为单次遍历，避免重复遍历树结构。
 
 ```javascript
 // 检查根节点
@@ -1277,6 +1540,435 @@ console.log(t.isSafeTreeDepth(customTree, 2, fieldNames)) // false
 - 防止递归调用栈溢出
 - 性能优化，避免处理过深的树结构
 
+---
+
+## 聚合分析方法
+
+对树结构数据进行聚合、统计和分析的方法。
+
+### reduceTree
+
+对树结构数据进行归约操作，遍历所有节点并累积结果。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20, children: [{ id: 3, value: 30 }] }
+]
+
+// 计算所有节点值的总和
+const sum = t.reduceTree(tree, (acc, node) => acc + (node.value || 0), 0)
+console.log(sum) // 60
+
+// 收集所有节点ID
+const ids = t.reduceTree(tree, (ids, node) => {
+  ids.push(node.id)
+  return ids
+}, [])
+console.log(ids) // [1, 2, 3]
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `reducer`: 归约函数，接收累加值和当前节点，返回新的累加值
+- `initialValue`: 初始值
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 按深度优先顺序遍历所有节点
+- 可以用于实现各种聚合操作
+
+---
+
+### aggregateTree
+
+按分组聚合树结构数据，支持多种聚合操作（求和、平均值、最大值、最小值、计数）。
+
+```javascript
+const tree = [
+  { id: 1, category: 'A', value: 10, score: 80 },
+  { id: 2, category: 'A', value: 20, score: 90 },
+  { id: 3, category: 'B', value: 30, score: 70, children: [{ id: 4, category: 'B', value: 40, score: 85 }] }
+]
+
+// 按 category 分组聚合
+const result = t.aggregateTree(tree, {
+  groupBy: node => node.category,
+  aggregations: {
+    totalValue: { operation: 'sum', field: 'value' },
+    avgScore: { operation: 'avg', field: 'score' },
+    maxValue: { operation: 'max', field: 'value' },
+    count: { operation: 'count' }
+  }
+})
+
+console.log(result)
+// {
+//   'A': { totalValue: 30, avgScore: 85, maxValue: 20, count: 2 },
+//   'B': { totalValue: 70, avgScore: 77.5, maxValue: 40, count: 2 }
+// }
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `options`: 聚合选项
+  - `groupBy`: 分组函数，接收节点并返回分组键
+  - `aggregations`: 聚合配置对象，键为结果字段名，值为聚合配置
+    - `operation`: 聚合操作类型（'sum' | 'avg' | 'max' | 'min' | 'count'）
+    - `field`: 要聚合的字段名（count 操作不需要）
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 支持多种聚合操作同时进行
+- 递归处理所有层级的节点
+- count 操作统计节点数量，不需要 field 参数
+
+---
+
+### groupTree
+
+按字段分组树结构数据，返回按字段值分组的节点数组。
+
+```javascript
+const tree = [
+  { id: 1, category: 'A' },
+  { id: 2, category: 'A' },
+  { id: 3, category: 'B', children: [{ id: 4, category: 'B' }] }
+]
+
+// 按 category 字段分组
+const grouped = t.groupTree(tree, 'category')
+console.log(grouped)
+// {
+//   'A': [{ id: 1, category: 'A' }, { id: 2, category: 'A' }],
+//   'B': [{ id: 3, category: 'B' }, { id: 4, category: 'B' }]
+// }
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `field`: 分组字段名
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 返回的节点是原节点的引用，不是深拷贝
+- 递归处理所有层级的节点
+
+---
+
+### groupByTree
+
+按条件分组树结构数据，使用自定义函数确定分组键。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 10, children: [{ id: 4, value: 30 }] }
+]
+
+// 按 value 是否大于等于 20 分组
+const grouped = t.groupByTree(tree, node => node.value >= 20 ? 'high' : 'low')
+console.log(grouped)
+// {
+//   'low': [{ id: 1, value: 10 }, { id: 3, value: 10 }],
+//   'high': [{ id: 2, value: 20 }, { id: 4, value: 30 }]
+// }
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `groupFn`: 分组函数，接收节点并返回分组键
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 分组键会被转换为字符串
+- 返回的节点是原节点的引用，不是深拷贝
+
+---
+
+### sumTree
+
+计算树结构数据中某个字段的总和。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20, children: [{ id: 3, value: 30 }] }
+]
+
+// 计算 value 字段的总和
+const total = t.sumTree(tree, 'value')
+console.log(total) // 60
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `field`: 字段名
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 缺失或 null/undefined 的值会被视为 0
+- 递归处理所有层级的节点
+
+---
+
+### avgTree
+
+计算树结构数据中某个字段的平均值。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 30 }
+]
+
+// 计算 value 字段的平均值
+const average = t.avgTree(tree, 'value')
+console.log(average) // 20
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `field`: 字段名
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 忽略 null 和 undefined 值
+- 如果所有值都是 null/undefined，返回 0
+
+---
+
+### maxTree
+
+获取树结构数据中某个字段的最大值。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 30 },
+  { id: 3, value: 20 }
+]
+
+// 获取 value 字段的最大值
+const max = t.maxTree(tree, 'value')
+console.log(max) // 30
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `field`: 字段名
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 只处理数字类型的值
+- 如果树为空或没有有效值，返回 null
+
+---
+
+### minTree
+
+获取树结构数据中某个字段的最小值。
+
+```javascript
+const tree = [
+  { id: 1, value: 30 },
+  { id: 2, value: 10 },
+  { id: 3, value: 20 }
+]
+
+// 获取 value 字段的最小值
+const min = t.minTree(tree, 'value')
+console.log(min) // 10
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `field`: 字段名
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 只处理数字类型的值
+- 如果树为空或没有有效值，返回 null
+
+---
+
+### countTree
+
+统计树结构数据中满足条件的节点数量。
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 10, children: [{ id: 4, value: 30 }] }
+]
+
+// 统计所有节点
+const total = t.countTree(tree)
+console.log(total) // 4
+
+// 统计满足条件的节点
+const count = t.countTree(tree, node => node.value === 10)
+console.log(count) // 2
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `conditionFn`: 统计条件函数（可选），不传则统计所有节点
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 不传条件函数时统计所有节点
+- 递归处理所有层级的节点
+
+---
+
+### getTreeStats
+
+获取树结构数据的综合统计信息。
+
+```javascript
+const tree = [
+  { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] }
+]
+
+// 获取统计信息
+const stats = t.getTreeStats(tree)
+console.log(stats)
+// {
+//   totalNodes: 4,      // 总节点数
+//   leafNodes: 2,        // 叶子节点数
+//   maxDepth: 3,        // 最大深度
+//   minDepth: 1,        // 最小深度
+//   avgDepth: 2,        // 平均深度
+//   levels: 3            // 层级数（等于最大深度）
+// }
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `fieldNames`: 自定义字段名配置（可选）
+
+**注意事项：**
+- 返回完整的统计信息对象
+- 空树返回所有值为 0 的统计信息
+
+---
+
+### analyzeTree
+
+全面分析树结构数据，提供详细的统计信息、分布情况、平衡性分析等。
+
+```javascript
+const tree = [
+  { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] }
+]
+
+// 全面分析树结构
+const analysis = t.analyzeTree(tree)
+console.log(analysis)
+// {
+//   // 基础统计
+//   totalNodes: 4,           // 总节点数
+//   leafNodes: 2,            // 叶子节点数
+//   internalNodes: 2,        // 内部节点数
+//   maxDepth: 3,             // 最大深度
+//   minDepth: 1,             // 最小深度
+//   avgDepth: 2,             // 平均深度
+//   levels: 3,                // 层级数
+//   
+//   // 层级分析
+//   byLevel: { 0: 1, 1: 2, 2: 1 },  // 按层级统计节点数
+//   maxWidth: 2,              // 最大宽度（单层最多节点数）
+//   avgWidth: 1.33,          // 平均宽度
+//   widthByLevel: { 0: 1, 1: 2, 2: 1 },  // 每层宽度
+//   
+//   // 分支因子分析
+//   avgBranchingFactor: 1.5,  // 平均分支因子（平均子节点数）
+//   maxBranchingFactor: 2,      // 最大分支因子
+//   minBranchingFactor: 1,      // 最小分支因子
+//   branchingFactorDistribution: { 1: 1, 2: 1 },  // 分支因子分布
+//   
+//   // 深度分布
+//   depthDistribution: { 1: 1, 2: 2, 3: 1 },  // 按深度统计节点数
+//   
+//   // 平衡性分析
+//   depthVariance: 0.5,       // 深度方差（越小越平衡）
+//   isBalanced: true,          // 是否平衡
+//   balanceRatio: 0.33,        // 平衡比率（minDepth/maxDepth）
+//   
+//   // 路径分析
+//   avgPathLength: 2.25,      // 平均路径长度
+//   maxPathLength: 3,         // 最大路径长度
+//   minPathLength: 1,         // 最小路径长度
+//   
+//   // 叶子节点分析
+//   leafNodeRatio: 0.5,       // 叶子节点比例
+//   leafNodesByLevel: { 2: 1, 3: 1 }  // 每层叶子节点数
+// }
+```
+
+**参数说明：**
+- `tree`: 树结构数据
+- `options`: 分析选项（可选），可指定需要计算的统计项，默认计算所有统计项
+  - `includeBasic`: 是否包含基础统计（totalNodes, leafNodes, internalNodes, maxDepth, minDepth, avgDepth, levels），默认 `true`
+  - `includeLevelAnalysis`: 是否包含层级分析（byLevel, maxWidth, avgWidth, widthByLevel），默认 `true`
+  - `includeBranchingFactor`: 是否包含分支因子分析（avgBranchingFactor, maxBranchingFactor, minBranchingFactor, branchingFactorDistribution），默认 `true`
+  - `includeDepthDistribution`: 是否包含深度分布（depthDistribution），默认 `true`
+  - `includeBalanceAnalysis`: 是否包含平衡性分析（depthVariance, isBalanced, balanceRatio），默认 `true`
+  - `includePathAnalysis`: 是否包含路径分析（avgPathLength, maxPathLength, minPathLength），默认 `true`
+  - `includeLeafAnalysis`: 是否包含叶子节点分析（leafNodeRatio, leafNodesByLevel），默认 `true`
+- `fieldNames`: 自定义字段名配置（可选）
+
+```javascript
+// 只计算基础统计和分支因子（性能优化）
+const quickAnalysis = t.analyzeTree(tree, {
+  includeBasic: true,
+  includeBranchingFactor: true,
+  includeLevelAnalysis: false,
+  includeDepthDistribution: false,
+  includeBalanceAnalysis: false,
+  includePathAnalysis: false,
+  includeLeafAnalysis: false,
+})
+console.log(quickAnalysis.totalNodes) // 4
+console.log(quickAnalysis.maxBranchingFactor) // 2
+console.log(quickAnalysis.byLevel) // {} (未计算)
+
+// 只计算平衡性分析
+const balanceAnalysis = t.analyzeTree(tree, {
+  includeBasic: true,
+  includeBalanceAnalysis: true,
+  includeLevelAnalysis: false,
+  includeBranchingFactor: false,
+  includeDepthDistribution: false,
+  includePathAnalysis: false,
+  includeLeafAnalysis: false,
+})
+console.log(balanceAnalysis.isBalanced) // true/false
+console.log(balanceAnalysis.depthVariance) // 0.5
+```
+
+**返回的分析信息包括：**
+
+1. **基础统计**：总节点数、叶子节点数、内部节点数、深度信息等
+2. **层级分析**：每层节点数、最大宽度、平均宽度等
+3. **分支因子分析**：平均/最大/最小分支因子、分支因子分布等
+4. **深度分布**：每个深度的节点数量
+5. **平衡性分析**：深度方差、是否平衡、平衡比率等
+6. **路径分析**：平均/最大/最小路径长度
+7. **叶子节点分析**：叶子节点比例、每层叶子节点数
+
+**注意事项：**
+- 提供全面的树结构分析，适合用于性能优化、结构评估等场景
+- `isBalanced` 基于深度方差和深度范围判断，深度方差 < 2 且深度范围 ≤ 2 视为平衡
+- `balanceRatio` 接近 1 表示树更平衡
+- **性能优化**：通过 `options` 参数可以只计算需要的统计项，对于大型树结构可以显著提升性能
+
+---
+
 ## 自定义字段名
 
 所有方法都支持自定义 children 和 id 的属性名，通过最后一个参数传入配置对象：
@@ -1297,21 +1989,20 @@ const foundNode2 = t.findTree(customTreeData, (node) => node.nodeId === 2, field
 ### 运行测试
 
 ```bash
-# 运行所有测试（自动打包后测试源码 + 打包文件，656 个测试用例）
+# 运行所有测试（自动打包后测试源码 + 打包文件，712 个测试用例）
 npm test
 
 # 运行所有测试（单次，不监听文件变化）
 npm test -- --run
 
-# 仅测试源代码（328 个测试用例）
+# 仅测试源代码（447 个测试用例）
 npm run test:src
 
-# 仅测试打包后的文件（328 个测试用例，需要先运行 npm run build）
+# 仅测试打包后的文件（447 个测试用例，需要先运行 npm run build）
 npm run test:dist
 
 # 运行测试并生成覆盖率报告
 npm run test:coverage
-```
 
 ## 开发
 

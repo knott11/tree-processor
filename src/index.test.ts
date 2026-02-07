@@ -35,6 +35,24 @@ import {
   convertToMapTree,
   convertToLevelArrayTree,
   convertToObjectTree,
+  cloneTree,
+  shallowCloneTree,
+  cloneSubtree,
+  cloneWithTransform,
+  concatTree,
+  sortTree,
+  reduceTree,
+  sliceTree,
+  aggregateTree,
+  groupTree,
+  groupByTree,
+  sumTree,
+  avgTree,
+  maxTree,
+  minTree,
+  countTree,
+  getTreeStats,
+  analyzeTree,
 } from './index';
 
 describe('Tree Processor', () => {
@@ -119,6 +137,32 @@ describe('Tree Processor', () => {
       const success = pushTree(treeData, 999, newNode);
       expect(success).toBe(false);
     });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [{ nodeId: 1, subNodes: [] }];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const newNode = { nodeId: 2, name: 'child' };
+      const success = pushTree(tree, 1, newNode, fieldNames);
+      expect(success).toBe(true);
+      expect(tree[0].subNodes).toHaveLength(1);
+      expect(tree[0].subNodes[0].nodeId).toBe(2);
+    });
+
+    it('应该处理空树', () => {
+      const tree: any[] = [];
+      const newNode = { id: 1, name: 'root' };
+      const success = pushTree(tree, 1, newNode);
+      expect(success).toBe(false);
+    });
+
+    it('应该能够为没有children的节点创建children数组', () => {
+      const tree = [{ id: 1, name: 'root' }];
+      const newNode = { id: 2, name: 'child' };
+      const success = pushTree(tree, 1, newNode);
+      expect(success).toBe(true);
+      expect(Array.isArray(tree[0].children)).toBe(true);
+      expect(tree[0].children).toHaveLength(1);
+    });
   });
 
   describe('unshiftTree', () => {
@@ -183,15 +227,40 @@ describe('Tree Processor', () => {
 
   describe('popTree', () => {
     it('应该删除指定节点下的最后一个子节点', () => {
-      const success = popTree(treeData, 1);
-      expect(success).toBe(true);
+      const originalLastChild = treeData[0].children[treeData[0].children.length - 1];
+      const removedNode = popTree(treeData, 1);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalLastChild);
       expect(treeData[0].children.length).toBe(1);
       expect(treeData[0].children[0].id).toBe(2);
     });
 
-    it('应该返回false如果节点没有子节点', () => {
-      const success = popTree(treeData, 4);
-      expect(success).toBe(false);
+    it('应该返回null如果节点没有子节点', () => {
+      const removedNode = popTree(treeData, 4);
+      expect(removedNode).toBeNull();
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2 }, { nodeId: 3 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const originalLastChild = tree[0].subNodes[tree[0].subNodes.length - 1];
+      const removedNode = popTree(tree, 1, fieldNames);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalLastChild);
+      expect(tree[0].subNodes).toHaveLength(1);
+      expect(tree[0].subNodes[0].nodeId).toBe(2);
+    });
+
+    it('应该处理空树', () => {
+      const removedNode = popTree([], 1);
+      expect(removedNode).toBeNull();
+    });
+
+    it('应该返回null如果未找到目标节点', () => {
+      const removedNode = popTree(treeData, 999);
+      expect(removedNode).toBeNull();
     });
 
     it('应该在深层子节点中找到目标节点并删除（触发209行）', () => {
@@ -212,8 +281,10 @@ describe('Tree Processor', () => {
         },
       ];
       // 在深层子节点中找到节点3并删除其最后一个子节点
-      const success = popTree(deepTree, 3);
-      expect(success).toBe(true);
+      const originalLastChild = deepTree[0].children[0].children[0].children[deepTree[0].children[0].children[0].children.length - 1];
+      const removedNode = popTree(deepTree, 3);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalLastChild);
       expect(deepTree[0].children[0].children[0].children.length).toBe(1);
       expect(deepTree[0].children[0].children[0].children[0].id).toBe(4);
     });
@@ -221,15 +292,40 @@ describe('Tree Processor', () => {
 
   describe('shiftTree', () => {
     it('应该删除指定节点下的第一个子节点', () => {
-      const success = shiftTree(treeData, 1);
-      expect(success).toBe(true);
+      const originalFirstChild = treeData[0].children[0];
+      const removedNode = shiftTree(treeData, 1);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalFirstChild);
       expect(treeData[0].children.length).toBe(1);
       expect(treeData[0].children[0].id).toBe(3);
     });
 
-    it('应该返回false如果节点没有子节点', () => {
-      const success = shiftTree(treeData, 4);
-      expect(success).toBe(false);
+    it('应该返回null如果节点没有子节点', () => {
+      const removedNode = shiftTree(treeData, 4);
+      expect(removedNode).toBeNull();
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2 }, { nodeId: 3 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const originalFirstChild = tree[0].subNodes[0];
+      const removedNode = shiftTree(tree, 1, fieldNames);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalFirstChild);
+      expect(tree[0].subNodes).toHaveLength(1);
+      expect(tree[0].subNodes[0].nodeId).toBe(3);
+    });
+
+    it('应该处理空树', () => {
+      const removedNode = shiftTree([], 1);
+      expect(removedNode).toBeNull();
+    });
+
+    it('应该返回null如果未找到目标节点', () => {
+      const removedNode = shiftTree(treeData, 999);
+      expect(removedNode).toBeNull();
     });
 
     it('应该在深层子节点中找到目标节点并删除第一个子节点（触发243行）', () => {
@@ -250,8 +346,10 @@ describe('Tree Processor', () => {
         },
       ];
       // 在深层子节点中找到节点3并删除其第一个子节点
-      const success = shiftTree(deepTree, 3);
-      expect(success).toBe(true);
+      const originalFirstChild = deepTree[0].children[0].children[0].children[0];
+      const removedNode = shiftTree(deepTree, 3);
+      expect(removedNode).not.toBeNull();
+      expect(removedNode).toEqual(originalFirstChild);
       expect(deepTree[0].children[0].children[0].children.length).toBe(1);
       expect(deepTree[0].children[0].children[0].children[0].id).toBe(5);
     });
@@ -268,8 +366,8 @@ describe('Tree Processor', () => {
           ],
         },
       ];
-      const success = shiftTree(treeWithNoChildren, 2);
-      expect(success).toBe(false);
+      const removedNode = shiftTree(treeWithNoChildren, 2);
+      expect(removedNode).toBeNull();
     });
   });
 
@@ -283,6 +381,23 @@ describe('Tree Processor', () => {
       const result = someTree(treeData, (item) => item.name === 'jack');
       expect(result).toBe(false);
     });
+
+    it('应该处理空树', () => {
+      const result = someTree([], (item) => item.id > 0);
+      expect(result).toBe(false);
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [{ nodeId: 1, name: 'test' }];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = someTree(tree, (item) => item.name === 'test', fieldNames);
+      expect(result).toBe(true);
+    });
+
+    it('应该在深层节点中找到满足条件的节点', () => {
+      const result = someTree(treeData, (item) => item.id === 6);
+      expect(result).toBe(true);
+    });
   });
 
   describe('everyTree', () => {
@@ -294,6 +409,18 @@ describe('Tree Processor', () => {
     it('应该返回false如果有节点不满足条件', () => {
       const result = everyTree(treeData, (item) => item.id > 3);
       expect(result).toBe(false);
+    });
+
+    it('应该处理空树（空树所有节点都满足条件）', () => {
+      const result = everyTree([], (item) => item.id > 0);
+      expect(result).toBe(true);
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [{ nodeId: 1, name: 'test' }];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = everyTree(tree, (item) => item.nodeId > 0, fieldNames);
+      expect(result).toBe(true);
     });
 
     it('应该返回false如果子节点中有不满足条件的节点', () => {
@@ -342,8 +469,34 @@ describe('Tree Processor', () => {
       expect(result?.id).toBe(3);
     });
 
-    it('应该返回null如果未找到', () => {
+    it('应该返回null如果未找到父节点', () => {
       const result = atTree(treeData, 999, 0);
+      expect(result).toBeNull();
+    });
+
+    it('应该返回null如果索引超出范围', () => {
+      const result = atTree(treeData, 1, 999);
+      expect(result).toBeNull();
+    });
+
+    it('应该返回null如果父节点没有子节点', () => {
+      const tree = [{ id: 1, name: 'leaf' }];
+      const result = atTree(tree, 1, 0);
+      expect(result).toBeNull();
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2 }, { nodeId: 3 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = atTree(tree, 1, 0, fieldNames);
+      expect(result).not.toBeNull();
+      expect(result?.nodeId).toBe(2);
+    });
+
+    it('应该处理空树', () => {
+      const result = atTree([], 1, 0);
       expect(result).toBeNull();
     });
   });
@@ -358,6 +511,29 @@ describe('Tree Processor', () => {
       const result = indexOfTree(treeData, 999);
       expect(result).toBeNull();
     });
+
+    it('应该处理多个根节点的情况', () => {
+      const multiRoot = [
+        { id: 1, children: [{ id: 2 }] },
+        { id: 3, children: [{ id: 4 }] },
+      ];
+      const result = indexOfTree(multiRoot, 4);
+      expect(result).toEqual([1, 0]);
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = indexOfTree(tree, 2, fieldNames);
+      expect(result).toEqual([0, 0]);
+    });
+
+    it('应该处理空树', () => {
+      const result = indexOfTree([], 1);
+      expect(result).toBeNull();
+    });
   });
 
   describe('atIndexOfTree', () => {
@@ -369,6 +545,31 @@ describe('Tree Processor', () => {
 
     it('应该返回null如果路径无效', () => {
       const result = atIndexOfTree(treeData, [999, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该返回null如果路径为空', () => {
+      const result = atIndexOfTree(treeData, []);
+      expect(result).toBeNull();
+    });
+
+    it('应该返回null如果路径索引为负数', () => {
+      const result = atIndexOfTree(treeData, [-1, 0]);
+      expect(result).toBeNull();
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2, subNodes: [{ nodeId: 3 }] }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = atIndexOfTree(tree, [0, 0, 0], fieldNames);
+      expect(result).not.toBeNull();
+      expect(result?.nodeId).toBe(3);
+    });
+
+    it('应该处理空树', () => {
+      const result = atIndexOfTree([], [0]);
       expect(result).toBeNull();
     });
   });
@@ -1035,12 +1236,18 @@ describe('Tree Processor', () => {
       ];
 
       // 删除最后一个
-      popTree(testTree, 1);
+      const lastRemoved = popTree(testTree, 1);
+      expect(lastRemoved).not.toBeNull();
+      expect(lastRemoved?.id).toBe(4);
+      expect(lastRemoved?.name).toBe('last');
       expect(testTree[0].children).toHaveLength(2);
       expect(testTree[0].children[1].id).toBe(3);
 
       // 删除第一个
-      shiftTree(testTree, 1);
+      const firstRemoved = shiftTree(testTree, 1);
+      expect(firstRemoved).not.toBeNull();
+      expect(firstRemoved?.id).toBe(2);
+      expect(firstRemoved?.name).toBe('first');
       expect(testTree[0].children).toHaveLength(1);
       expect(testTree[0].children[0].id).toBe(3);
     });
@@ -1754,6 +1961,29 @@ describe('Tree Processor', () => {
       expect(siblings).toEqual([]);
     });
 
+    it('应该支持自定义字段名', () => {
+      const tree = [
+        { nodeId: 1, subNodes: [{ nodeId: 2 }, { nodeId: 3 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const siblings = getSiblingsTree(tree, 2, fieldNames);
+      expect(siblings).toHaveLength(2);
+      expect(siblings[0].nodeId).toBe(2);
+      expect(siblings[1].nodeId).toBe(3);
+    });
+
+    it('应该处理空树', () => {
+      const siblings = getSiblingsTree([], 1);
+      expect(siblings).toEqual([]);
+    });
+
+    it('应该处理单个根节点的情况', () => {
+      const singleRoot = [{ id: 1, children: [{ id: 2 }] }];
+      const siblings = getSiblingsTree(singleRoot, 1);
+      expect(siblings).toHaveLength(1);
+      expect(siblings[0].id).toBe(1);
+    });
+
     it('应该处理深层嵌套的节点', () => {
       const siblings = getSiblingsTree(treeData, 4);
       expect(siblings).toHaveLength(2);
@@ -1864,6 +2094,23 @@ describe('Tree Processor', () => {
 
     it('应该返回true如果树包含根节点', () => {
       const result = includesTree(treeData, 1);
+      expect(result).toBe(true);
+    });
+
+    it('应该返回false如果树不包含指定节点', () => {
+      const result = includesTree(treeData, 999);
+      expect(result).toBe(false);
+    });
+
+    it('应该处理空树', () => {
+      const result = includesTree([], 1);
+      expect(result).toBe(false);
+    });
+
+    it('应该支持自定义字段名', () => {
+      const tree = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      const result = includesTree(tree, 2, fieldNames);
       expect(result).toBe(true);
     });
 
@@ -3817,6 +4064,915 @@ describe('Tree Processor', () => {
         expect(result).not.toBeNull();
         expect(result?.id).toBe(1);
       });
+    });
+
+    describe('cloneTree', () => {
+      it('应该深拷贝树结构', () => {
+        const tree = [{ id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }];
+        const cloned = cloneTree(tree);
+        expect(cloned).not.toBe(tree);
+        expect(cloned[0]).not.toBe(tree[0]);
+        expect(cloned[0].children[0]).not.toBe(tree[0].children[0]);
+      });
+
+      it('应该不修改原树', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const cloned = cloneTree(tree);
+        cloned[0].name = 'modified';
+        expect(tree[0].name).toBe('node1');
+      });
+
+      it('应该递归拷贝所有层级', () => {
+        const tree = [{ id: 1, children: [{ id: 2, children: [{ id: 3 }] }] }];
+        const cloned = cloneTree(tree);
+        cloned[0].children[0].children[0].id = 999;
+        expect(tree[0].children[0].children[0].id).toBe(3);
+      });
+
+      it('应该处理空数组', () => {
+        const result = cloneTree([]);
+        expect(result).toEqual([]);
+      });
+
+      it('应该支持自定义字段名', () => {
+        const tree = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const cloned = cloneTree(tree, fieldNames);
+        expect(cloned[0].nodeId).toBe(1);
+        expect(cloned[0].subNodes[0].nodeId).toBe(2);
+        cloned[0].nodeId = 999;
+        expect(tree[0].nodeId).toBe(1);
+      });
+
+      it('应该保留所有节点属性', () => {
+        const tree = [{ id: 1, name: 'node1', value: 100, extra: { data: 'test' } }];
+        const cloned = cloneTree(tree);
+        expect(cloned[0].name).toBe('node1');
+        expect(cloned[0].value).toBe(100);
+        expect(cloned[0].extra.data).toBe('test');
+      });
+    });
+
+    describe('shallowCloneTree', () => {
+      it('应该浅拷贝第一层节点', () => {
+        const tree = [{ id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }];
+        const cloned = shallowCloneTree(tree);
+        expect(cloned).not.toBe(tree);
+        expect(cloned[0]).not.toBe(tree[0]);
+        // 子节点应该共享引用（浅拷贝）
+        expect(cloned[0].children).toBe(tree[0].children);
+      });
+
+      it('应该不修改原树的第一层', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const cloned = shallowCloneTree(tree);
+        cloned[0].name = 'modified';
+        expect(tree[0].name).toBe('node1');
+      });
+
+      it('应该处理空数组', () => {
+        const result = shallowCloneTree([]);
+        expect(result).toEqual([]);
+      });
+
+      it('应该支持自定义字段名', () => {
+        const tree = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const cloned = shallowCloneTree(tree, fieldNames);
+        expect(cloned[0].nodeId).toBe(1);
+        cloned[0].nodeId = 999;
+        expect(tree[0].nodeId).toBe(1);
+      });
+    });
+
+    describe('cloneSubtree', () => {
+      it('应该拷贝指定节点的子树（按 id）', () => {
+        const tree = [
+          {
+            id: 1,
+            name: 'node1',
+            children: [
+              { id: 2, name: 'node2', children: [{ id: 4, name: 'node4' }] },
+              { id: 3, name: 'node3' },
+            ],
+          },
+        ];
+        const cloned = cloneSubtree(tree, { id: 2 });
+        expect(cloned).toHaveLength(1);
+        expect(cloned[0].id).toBe(2);
+        expect(cloned[0].name).toBe('node2');
+        expect(cloned[0].children).toHaveLength(1);
+        expect(cloned[0].children[0].id).toBe(4);
+      });
+
+      it('应该深拷贝子树', () => {
+        const tree = [{ id: 1, children: [{ id: 2, children: [{ id: 3 }] }] }];
+        const cloned = cloneSubtree(tree, { id: 2 });
+        cloned[0].children[0].id = 999;
+        expect(tree[0].children[0].children[0].id).toBe(3);
+      });
+
+      it('未找到节点应该返回空数组', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const result = cloneSubtree(tree, { id: 999 });
+        expect(result).toEqual([]);
+      });
+
+      it('应该处理空数组', () => {
+        const result = cloneSubtree([], { id: 1 });
+        expect(result).toEqual([]);
+      });
+
+      it('应该支持自定义 children 字段名', () => {
+        const tree = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const cloned = cloneSubtree(tree, { nodeId: 2 }, fieldNames);
+        expect(cloned).toHaveLength(1);
+        expect(cloned[0].nodeId).toBe(2);
+      });
+
+      it('查找字段由对象键名决定，不使用 fieldNames.id', () => {
+        const tree = [{ customId: 1, children: [{ customId: 2 }] }];
+        const fieldNames = { children: 'children', id: 'id' };
+        // 即使 fieldNames.id 是 'id'，但查找字段由对象键名决定，所以用 customId
+        const cloned = cloneSubtree(tree, { customId: 2 }, fieldNames);
+        expect(cloned).toHaveLength(1);
+        expect(cloned[0].customId).toBe(2);
+      });
+
+      it('应该支持按 name 字段查找（传对象）', () => {
+        const tree = [
+          {
+            id: 1,
+            name: 'root',
+            children: [
+              { id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] },
+              { id: 3, name: 'sub2' },
+            ],
+          },
+        ];
+        const cloned = cloneSubtree(tree, { name: 'sub1' });
+        expect(cloned).toHaveLength(1);
+        expect(cloned[0].name).toBe('sub1');
+        expect(cloned[0].id).toBe(2);
+        expect(cloned[0].children).toHaveLength(1);
+        expect(cloned[0].children[0].name).toBe('sub1-1');
+      });
+
+      it('应该支持按其他字段查找（传对象）', () => {
+        const tree = [
+          {
+            id: 1,
+            code: 'A001',
+            children: [
+              { id: 2, code: 'B001', children: [{ id: 4, code: 'C001' }] },
+              { id: 3, code: 'B002' },
+            ],
+          },
+        ];
+        const cloned = cloneSubtree(tree, { code: 'B001' });
+        expect(cloned).toHaveLength(1);
+        expect(cloned[0].code).toBe('B001');
+        expect(cloned[0].id).toBe(2);
+        expect(cloned[0].children).toHaveLength(1);
+        expect(cloned[0].children[0].code).toBe('C001');
+      });
+
+      it('按其他字段查找未找到应该返回空数组', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const result = cloneSubtree(tree, { name: 'notfound' });
+        expect(result).toEqual([]);
+      });
+
+      it('传空对象应该返回空数组', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const result = cloneSubtree(tree, {});
+        expect(result).toEqual([]);
+      });
+
+      it('传多个字段的对象应该抛出错误', () => {
+        const tree = [{ id: 1, name: 'node1', code: 'A001' }];
+        expect(() => cloneSubtree(tree, { name: 'node1', code: 'A001' })).toThrow();
+      });
+
+      it('不传对象应该抛出错误', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        expect(() => cloneSubtree(tree, 1 as any)).toThrow();
+        expect(() => cloneSubtree(tree, 'node1' as any)).toThrow();
+      });
+    });
+
+    describe('cloneWithTransform', () => {
+      it('应该拷贝并转换节点', () => {
+        const tree = [{ id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }];
+        const cloned = cloneWithTransform(tree, (node) => ({
+          ...node,
+          label: node.name,
+        }));
+        expect(cloned[0].label).toBe('node1');
+        expect(cloned[0].children[0].label).toBe('node2');
+        expect(tree[0].label).toBeUndefined();
+      });
+
+      it('应该深拷贝转换后的树', () => {
+        const tree = [{ id: 1, name: 'node1' }];
+        const cloned = cloneWithTransform(tree, (node) => ({ ...node, count: 1 }));
+        cloned[0].count = 999;
+        expect(tree[0].count).toBeUndefined();
+      });
+
+      it('应该递归转换所有节点', () => {
+        const tree = [
+          {
+            id: 1,
+            children: [
+              { id: 2, children: [{ id: 3 }] },
+            ],
+          },
+        ];
+        const cloned = cloneWithTransform(tree, (node) => ({
+          ...node,
+          processed: true,
+        }));
+        expect(cloned[0].processed).toBe(true);
+        expect(cloned[0].children[0].processed).toBe(true);
+        expect(cloned[0].children[0].children[0].processed).toBe(true);
+      });
+
+      it('应该处理空数组', () => {
+        const result = cloneWithTransform([], (node) => node);
+        expect(result).toEqual([]);
+      });
+
+      it('应该支持自定义字段名', () => {
+        const tree = [{ nodeId: 1, subNodes: [{ nodeId: 2 }] }];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const cloned = cloneWithTransform(
+          tree,
+          (node) => ({ ...node, label: `Node ${node.nodeId}` }),
+          fieldNames
+        );
+        expect(cloned[0].label).toBe('Node 1');
+        expect(cloned[0].subNodes[0].label).toBe('Node 2');
+      });
+    });
+  });
+
+  describe('数据分析方法', () => {
+    describe('aggregateTree', () => {
+      it('应该按分组聚合数据', () => {
+        const tree = [
+          { id: 1, category: 'A', value: 10, score: 80 },
+          { id: 2, category: 'A', value: 20, score: 90 },
+          { id: 3, category: 'B', value: 30, score: 70, children: [{ id: 4, category: 'B', value: 40, score: 85 }] },
+        ];
+        
+        const result = aggregateTree(tree, {
+          groupBy: (node) => node.category,
+          aggregations: {
+            totalValue: { operation: 'sum', field: 'value' },
+            avgScore: { operation: 'avg', field: 'score' },
+            count: { operation: 'count' },
+          },
+        });
+        
+        expect(result['A'].totalValue).toBe(30);
+        expect(result['A'].avgScore).toBe(85);
+        expect(result['A'].count).toBe(2);
+        expect(result['B'].totalValue).toBe(70);
+        expect(result['B'].count).toBe(2);
+      });
+
+      it('应该处理空树', () => {
+        const result = aggregateTree([], {
+          groupBy: (node) => node.category,
+          aggregations: { count: { operation: 'count' } },
+        });
+        expect(result).toEqual({});
+      });
+
+      it('应该支持自定义字段名', () => {
+        const tree = [
+          { nodeId: 1, type: 'X', amount: 100 },
+          { nodeId: 2, type: 'X', amount: 200 },
+        ];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const result = aggregateTree(
+          tree,
+          {
+            groupBy: (node) => node.type,
+            aggregations: { total: { operation: 'sum', field: 'amount' } },
+          },
+          fieldNames
+        );
+        expect(result['X'].total).toBe(300);
+      });
+    });
+
+    describe('groupTree', () => {
+      it('应该按字段分组', () => {
+        const tree = [
+          { id: 1, category: 'A' },
+          { id: 2, category: 'A' },
+          { id: 3, category: 'B', children: [{ id: 4, category: 'B' }] },
+        ];
+        const result = groupTree(tree, 'category');
+        expect(result['A']).toHaveLength(2);
+        expect(result['B']).toHaveLength(2);
+      });
+
+      it('应该处理空树', () => {
+        const result = groupTree([], 'category');
+        expect(result).toEqual({});
+      });
+    });
+
+    describe('groupByTree', () => {
+      it('应该按条件分组', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 20 },
+          { id: 3, value: 10, children: [{ id: 4, value: 30 }] },
+        ];
+        const result = groupByTree(tree, (node) => node.value >= 20 ? 'high' : 'low');
+        expect(result['low']).toHaveLength(2);
+        expect(result['high']).toHaveLength(2);
+      });
+    });
+
+    describe('sumTree', () => {
+      it('应该计算字段总和', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 20, children: [{ id: 3, value: 30 }] },
+        ];
+        expect(sumTree(tree, 'value')).toBe(60);
+      });
+
+      it('应该处理空值和缺失字段', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2 },
+          { id: 3, value: null },
+        ];
+        expect(sumTree(tree, 'value')).toBe(10);
+      });
+    });
+
+    describe('avgTree', () => {
+      it('应该计算字段平均值', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 20 },
+          { id: 3, value: 30 },
+        ];
+        expect(avgTree(tree, 'value')).toBe(20);
+      });
+
+      it('应该忽略 null 和 undefined', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2 },
+          { id: 3, value: null },
+        ];
+        expect(avgTree(tree, 'value')).toBe(10);
+      });
+
+      it('应该处理空树', () => {
+        expect(avgTree([], 'value')).toBe(0);
+      });
+    });
+
+    describe('maxTree', () => {
+      it('应该获取字段最大值', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 30 },
+          { id: 3, value: 20 },
+        ];
+        expect(maxTree(tree, 'value')).toBe(30);
+      });
+
+      it('应该处理空树', () => {
+        expect(maxTree([], 'value')).toBeNull();
+      });
+
+      it('应该忽略非数字值', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 'abc' },
+          { id: 3, value: 20 },
+        ];
+        expect(maxTree(tree, 'value')).toBe(20);
+      });
+    });
+
+    describe('minTree', () => {
+      it('应该获取字段最小值', () => {
+        const tree = [
+          { id: 1, value: 30 },
+          { id: 2, value: 10 },
+          { id: 3, value: 20 },
+        ];
+        expect(minTree(tree, 'value')).toBe(10);
+      });
+
+      it('应该处理空树', () => {
+        expect(minTree([], 'value')).toBeNull();
+      });
+    });
+
+    describe('countTree', () => {
+      it('应该统计所有节点', () => {
+        const tree = [
+          { id: 1 },
+          { id: 2, children: [{ id: 3 }] },
+        ];
+        expect(countTree(tree)).toBe(3);
+      });
+
+      it('应该统计满足条件的节点', () => {
+        const tree = [
+          { id: 1, value: 10 },
+          { id: 2, value: 20 },
+          { id: 3, value: 10 },
+        ];
+        expect(countTree(tree, (node) => node.value === 10)).toBe(2);
+      });
+    });
+
+    describe('getTreeStats', () => {
+      it('应该返回统计信息', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] },
+        ];
+        const stats = getTreeStats(tree);
+        expect(stats.totalNodes).toBe(4);
+        expect(stats.leafNodes).toBe(2);
+        expect(stats.maxDepth).toBe(3);
+        expect(stats.minDepth).toBe(1);
+        expect(stats.levels).toBe(3);
+      });
+
+      it('应该处理空树', () => {
+        const stats = getTreeStats([]);
+        expect(stats.totalNodes).toBe(0);
+        expect(stats.leafNodes).toBe(0);
+        expect(stats.maxDepth).toBe(0);
+      });
+
+      it('应该支持自定义字段名', () => {
+        const tree = [
+          { nodeId: 1, subNodes: [{ nodeId: 2 }] },
+        ];
+        const fieldNames = { children: 'subNodes', id: 'nodeId' };
+        const stats = getTreeStats(tree, fieldNames);
+        expect(stats.totalNodes).toBe(2);
+        expect(stats.leafNodes).toBe(1);
+      });
+    });
+
+    describe('analyzeTree', () => {
+      it('应该提供全面的树结构分析', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] },
+        ];
+        const analysis = analyzeTree(tree);
+        
+        // 基础统计
+        expect(analysis.totalNodes).toBe(4);
+        expect(analysis.leafNodes).toBe(2);
+        expect(analysis.internalNodes).toBe(2);
+        expect(analysis.maxDepth).toBe(3);
+        expect(analysis.levels).toBe(3);
+        
+        // 层级分析
+        expect(analysis.byLevel[0]).toBe(1);
+        expect(analysis.byLevel[1]).toBe(2);
+        expect(analysis.byLevel[2]).toBe(1);
+        expect(analysis.maxWidth).toBeGreaterThan(0);
+        expect(analysis.avgWidth).toBeGreaterThan(0);
+        
+        // 分支因子
+        expect(analysis.avgBranchingFactor).toBeGreaterThan(0);
+        expect(analysis.maxBranchingFactor).toBeGreaterThan(0);
+        
+        // 深度分布
+        expect(analysis.depthDistribution[1]).toBe(1);
+        expect(analysis.depthDistribution[2]).toBe(2);
+        expect(analysis.depthDistribution[3]).toBe(1);
+        
+        // 平衡性
+        expect(typeof analysis.isBalanced).toBe('boolean');
+        expect(analysis.balanceRatio).toBeGreaterThanOrEqual(0);
+        expect(analysis.balanceRatio).toBeLessThanOrEqual(1);
+        
+        // 路径分析
+        expect(analysis.avgPathLength).toBeGreaterThan(0);
+        expect(analysis.maxPathLength).toBeGreaterThan(0);
+        
+        // 叶子节点
+        expect(analysis.leafNodeRatio).toBeGreaterThan(0);
+        expect(analysis.leafNodeRatio).toBeLessThanOrEqual(1);
+      });
+
+      it('应该处理空树', () => {
+        const analysis = analyzeTree([]);
+        expect(analysis.totalNodes).toBe(0);
+        expect(analysis.leafNodes).toBe(0);
+        expect(analysis.maxDepth).toBe(0);
+        expect(analysis.byLevel).toEqual({});
+        expect(analysis.depthDistribution).toEqual({});
+      });
+
+      it('应该正确计算分支因子', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }, { id: 4 }] },
+        ];
+        const analysis = analyzeTree(tree);
+        expect(analysis.maxBranchingFactor).toBe(3);
+        expect(analysis.avgBranchingFactor).toBe(3);
+      });
+
+      it('应该正确计算平衡性', () => {
+        const balancedTree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }] },
+        ];
+        const analysis = analyzeTree(balancedTree);
+        expect(typeof analysis.isBalanced).toBe('boolean');
+        expect(analysis.depthVariance).toBeGreaterThanOrEqual(0);
+      });
+
+      it('应该支持只计算部分统计项', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] },
+        ];
+        
+        // 只计算基础统计，明确设置其他选项为 false
+        const basicAnalysis = analyzeTree(tree, { 
+          includeBasic: true,
+          includeLevelAnalysis: false,
+          includeBranchingFactor: false,
+          includeDepthDistribution: false,
+          includeBalanceAnalysis: false,
+          includePathAnalysis: false,
+          includeLeafAnalysis: false,
+        });
+        expect(basicAnalysis.totalNodes).toBe(4);
+        expect(basicAnalysis.leafNodes).toBe(2);
+        expect(basicAnalysis.maxDepth).toBe(3);
+        // 其他统计项应该为空或默认值
+        expect(basicAnalysis.byLevel).toEqual({});
+        expect(basicAnalysis.branchingFactorDistribution).toEqual({});
+        expect(basicAnalysis.depthDistribution).toEqual({});
+        expect(basicAnalysis.depthVariance).toBe(0);
+        expect(basicAnalysis.isBalanced).toBe(false);
+        expect(basicAnalysis.avgPathLength).toBe(0);
+        expect(basicAnalysis.leafNodeRatio).toBe(0);
+      });
+
+      it('应该支持只计算层级分析', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }] },
+        ];
+        
+        const levelAnalysis = analyzeTree(tree, { 
+          includeBasic: false,
+          includeLevelAnalysis: true 
+        });
+        expect(levelAnalysis.totalNodes).toBe(0);
+        expect(levelAnalysis.byLevel[0]).toBe(1);
+        expect(levelAnalysis.byLevel[1]).toBe(2);
+        expect(levelAnalysis.maxWidth).toBeGreaterThan(0);
+      });
+
+      it('应该支持只计算分支因子', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }, { id: 4 }] },
+        ];
+        
+        const branchingAnalysis = analyzeTree(tree, { 
+          includeBasic: false,
+          includeBranchingFactor: true 
+        });
+        expect(branchingAnalysis.totalNodes).toBe(0);
+        expect(branchingAnalysis.maxBranchingFactor).toBe(3);
+        expect(branchingAnalysis.avgBranchingFactor).toBe(3);
+        expect(branchingAnalysis.branchingFactorDistribution[3]).toBe(1);
+      });
+
+      it('应该支持只计算平衡性分析', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }] },
+        ];
+        
+        const balanceAnalysis = analyzeTree(tree, { 
+          includeBasic: true,
+          includeBalanceAnalysis: true 
+        });
+        expect(balanceAnalysis.totalNodes).toBe(3);
+        expect(typeof balanceAnalysis.isBalanced).toBe('boolean');
+        expect(balanceAnalysis.depthVariance).toBeGreaterThanOrEqual(0);
+        expect(balanceAnalysis.balanceRatio).toBeGreaterThanOrEqual(0);
+      });
+
+      it('应该支持组合选项', () => {
+        const tree = [
+          { id: 1, children: [{ id: 2 }, { id: 3 }] },
+        ];
+        
+        const combinedAnalysis = analyzeTree(tree, { 
+          includeBasic: true,
+          includeBranchingFactor: true,
+          includeBalanceAnalysis: true,
+          includeLevelAnalysis: false,
+          includeDepthDistribution: false,
+          includePathAnalysis: false,
+          includeLeafAnalysis: false,
+        });
+        expect(combinedAnalysis.totalNodes).toBe(3);
+        expect(combinedAnalysis.maxBranchingFactor).toBe(2);
+        expect(typeof combinedAnalysis.isBalanced).toBe('boolean');
+        expect(combinedAnalysis.byLevel).toEqual({});
+        expect(combinedAnalysis.depthDistribution).toEqual({});
+        expect(combinedAnalysis.avgPathLength).toBe(0);
+        expect(combinedAnalysis.leafNodeRatio).toBe(0);
+      });
+    });
+  });
+
+  describe('补充测试 - null/undefined 处理', () => {
+    it('filterTree 应该处理 undefined children', () => {
+      const tree = [
+        { id: 1, children: undefined },
+        { id: 2, children: null },
+      ];
+      const result = filterTree(tree, (node) => node.id === 1);
+      expect(result).toHaveLength(1);
+    });
+
+    it('应该处理 children 为 undefined 的情况', () => {
+      const tree = [
+        { id: 1, children: undefined },
+        { id: 2 },
+      ];
+      const result = mapTree(tree, (node) => node.id);
+      expect(result).toEqual([1, 2]);
+    });
+
+    it('应该处理 children 为 null 的情况', () => {
+      const tree = [
+        { id: 1, children: null },
+        { id: 2 },
+      ];
+      const result = mapTree(tree, (node) => node.id);
+      expect(result).toEqual([1, 2]);
+    });
+  });
+
+  describe('补充测试 - 错误消息验证', () => {
+    it('cloneSubtree 应该抛出正确的错误消息（非对象）', () => {
+      const tree = [{ id: 1 }];
+      expect(() => cloneSubtree(tree, 123 as any)).toThrow(
+        'cloneSubtree: 必须传入对象，例如 { id: 1 } 或 { name: "xxx" }'
+      );
+    });
+
+    it('cloneSubtree 应该抛出正确的错误消息（多个字段）', () => {
+      const tree = [{ id: 1, name: 'node1' }];
+      expect(() => cloneSubtree(tree, { id: 1, name: 'node1' })).toThrow(
+        'cloneSubtree: 查找对象只能包含一个字段，例如 { id: 1 } 或 { name: "xxx" }'
+      );
+    });
+
+    it('cloneSubtree 应该抛出正确的错误消息（数组）', () => {
+      const tree = [{ id: 1 }];
+      expect(() => cloneSubtree(tree, [1] as any)).toThrow(
+        'cloneSubtree: 必须传入对象，例如 { id: 1 } 或 { name: "xxx" }'
+      );
+    });
+  });
+
+  describe('补充测试 - 复杂场景组合', () => {
+    it('应该支持链式操作：filter -> map -> find', () => {
+      const tree = [
+        { id: 1, value: 10, children: [{ id: 2, value: 20 }, { id: 3, value: 30 }] },
+        { id: 4, value: 40, children: [{ id: 5, value: 50 }] },
+      ];
+      
+      const filtered = filterTree(tree, (node) => node.value > 20);
+      const mapped = mapTree(filtered, (node) => node.id);
+      const found = findTree(filtered, (node) => node.value === 50);
+      
+      expect(mapped).toContain(3);
+      expect(mapped).toContain(4);
+      expect(mapped).toContain(5);
+      expect(found?.id).toBe(5);
+    });
+
+    it('应该支持深度嵌套的复杂操作', () => {
+      const deepTree = [
+        {
+          id: 1,
+          level: 1,
+          children: [
+            {
+              id: 2,
+              level: 2,
+              children: [
+                {
+                  id: 3,
+                  level: 3,
+                  children: [
+                    { id: 4, level: 4 },
+                    { id: 5, level: 4 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      // 获取深度为 3 的节点
+      const depth3Nodes = filterTree(deepTree, (node) => node.level === 3);
+      expect(depth3Nodes).toHaveLength(1);
+      expect(depth3Nodes[0].id).toBe(3);
+
+      // 获取所有 level 4 的节点
+      const depth4Nodes = filterTree(deepTree, (node) => node.level === 4);
+      expect(depth4Nodes).toHaveLength(2);
+    });
+
+    it('应该支持大规模数据的操作', () => {
+      // 创建一个有 100 个节点的树
+      const largeTree: any[] = [];
+      for (let i = 1; i <= 10; i++) {
+        const children: any[] = [];
+        for (let j = 1; j <= 9; j++) {
+          children.push({ id: i * 10 + j, name: `node-${i}-${j}` });
+        }
+        largeTree.push({ id: i, name: `node-${i}`, children });
+      }
+
+      const allNodes = mapTree(largeTree, (node) => node.id);
+      expect(allNodes).toHaveLength(100);
+
+      const filtered = filterTree(largeTree, (node) => node.id % 2 === 0);
+      expect(filtered.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('补充测试 - 边界值处理', () => {
+    it('isSafeTreeDepth 应该处理 maxDepth = 0', () => {
+      const tree = [{ id: 1 }];
+      expect(isSafeTreeDepth(tree, 0)).toBe(false);
+    });
+
+    it('isSafeTreeDepth 应该处理 maxDepth < 0', () => {
+      const tree = [{ id: 1 }];
+      expect(isSafeTreeDepth(tree, -1)).toBe(false);
+    });
+
+    it('isSafeTreeDepth 应该处理空树', () => {
+      expect(isSafeTreeDepth([], 10)).toBe(true);
+    });
+
+    it('getNodeDepth 应该处理不存在的节点', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }] }];
+      const depth = getNodeDepth(tree, 999);
+      expect(depth).toBeNull();
+    });
+
+    it('getNodeDepthMap 应该处理空树', () => {
+      const map = getNodeDepthMap([]);
+      expect(map).toEqual({});
+    });
+  });
+
+  describe('补充测试 - 数据类型边界', () => {
+    it('应该处理 children 为数字的情况', () => {
+      const tree = [
+        { id: 1, children: 123 as any },
+        { id: 2, children: 'string' as any },
+      ];
+      
+      const result = mapTree(tree, (node) => node.id);
+      expect(result).toEqual([1, 2]);
+    });
+
+    it('应该处理 children 为布尔值的情况', () => {
+      const tree = [
+        { id: 1, children: true as any },
+        { id: 2, children: false as any },
+      ];
+      
+      const result = filterTree(tree, (node) => node.id === 1);
+      expect(result).toHaveLength(1);
+    });
+
+    it('应该处理节点没有 id 字段的情况', () => {
+      const tree = [
+        { name: 'node1', children: [{ name: 'node2' }] },
+      ];
+      
+      const result = mapTree(tree, (node) => node.name);
+      expect(result).toEqual(['node1', 'node2']);
+    });
+  });
+
+  describe('补充测试 - 自定义字段名边界', () => {
+    it('应该处理自定义字段名为空字符串', () => {
+      const tree = [
+        { customId: 1, customChildren: [{ customId: 2 }] },
+      ];
+      const fieldNames = { children: '', id: '' };
+      // 使用空字符串作为字段名，会查找空字符串字段，找不到子节点
+      const result = mapTree(tree, (node) => node.customId, fieldNames);
+      expect(result).toEqual([1]);
+    });
+
+    it('应该处理自定义字段名与节点字段不匹配', () => {
+      const tree = [
+        { id: 1, children: [{ id: 2 }] },
+      ];
+      const fieldNames = { children: 'subNodes', id: 'nodeId' };
+      // 字段名不匹配，应该找不到子节点
+      const result = getChildrenTree(tree, 1, fieldNames);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('补充测试 - 性能边界', () => {
+    it('应该处理单层大量节点', () => {
+      const tree: any[] = [];
+      for (let i = 1; i <= 1000; i++) {
+        tree.push({ id: i, name: `node-${i}` });
+      }
+      
+      const result = findTree(tree, (node) => node.id === 500);
+      expect(result?.id).toBe(500);
+    });
+
+    it('应该处理极深的树结构', () => {
+      let deepTree: any = { id: 1 };
+      let current = deepTree;
+      for (let i = 2; i <= 100; i++) {
+        current.children = [{ id: i }];
+        current = current.children[0];
+      }
+      
+      const depth = getNodeDepth([deepTree], 100);
+      expect(depth).toBe(100);
+    });
+  });
+
+  describe('补充测试 - 返回值验证', () => {
+    it('popTree 应该返回被删除的节点', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }, { id: 3 }] }];
+      const popped = popTree(tree, 1);
+      expect(popped?.id).toBe(3);
+      expect(tree[0].children).toHaveLength(1);
+    });
+
+    it('popTree 应该在没有子节点时返回 null', () => {
+      const tree = [{ id: 1, children: [] }];
+      const popped = popTree(tree, 1);
+      expect(popped).toBeNull();
+    });
+
+    it('shiftTree 应该返回被删除的节点', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }, { id: 3 }] }];
+      const shifted = shiftTree(tree, 1);
+      expect(shifted?.id).toBe(2);
+      expect(tree[0].children).toHaveLength(1);
+    });
+
+    it('shiftTree 应该在没有子节点时返回 null', () => {
+      const tree = [{ id: 1, children: [] }];
+      const shifted = shiftTree(tree, 1);
+      expect(shifted).toBeNull();
+    });
+  });
+
+  describe('补充测试 - 数组方法边界', () => {
+    it('sliceTree 应该处理负数 start', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }, { id: 3 }] }];
+      const result = sliceTree(tree, -1);
+      expect(result).toHaveLength(1);
+    });
+
+    it('sliceTree 应该处理负数 end', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }, { id: 3 }] }];
+      const result = sliceTree(tree, 0, -1);
+      // 负数 end 会被转换为正数，如果 end < start 则返回空数组
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('sliceTree 应该处理 start > end', () => {
+      const tree = [{ id: 1, children: [{ id: 2 }, { id: 3 }] }];
+      const result = sliceTree(tree, 2, 1);
+      expect(result).toHaveLength(0);
     });
   });
 });

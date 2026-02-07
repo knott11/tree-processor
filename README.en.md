@@ -10,11 +10,11 @@
 
 ![version](https://img.shields.io/npm/v/tree-processor?style=flat-square&label=version)
 ![npm downloads (2 months)](https://img.shields.io/badge/downloads-1.7K%2F2mo-brightgreen?style=flat-square)
-![bundle size](https://img.shields.io/badge/bundle-8.4KB-blue?style=flat-square)
+![bundle size](https://img.shields.io/badge/bundle-15KB-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![coverage](https://img.shields.io/badge/coverage-99%25-brightgreen?style=flat-square)
 
-A lightweight tree-structured data processing utility library written in TypeScript, supporting tree-shaking, with each format bundle size approximately **8.2-8.5 KB** (ESM: 8.24 KB, CJS: 8.51 KB, UMD: 8.52 KB).
+A lightweight tree-structured data processing utility library written in TypeScript, providing 50+ APIs including traversal, search, modification, conversion, query, analysis, and validation.
 
 
 </div>
@@ -26,28 +26,26 @@ A lightweight tree-structured data processing utility library written in TypeScr
 - [Installation](#-installation)
 - [Quick Start](#-quick-start)
 - [API Documentation](#-api-documentation)
-  - [Traversal Methods](#traversal-methods)
-  - [Search Methods](#search-methods)
-  - [Access Methods](#access-methods)
-  - [Modification Methods](#modification-methods)
-  - [Conversion Methods](#conversion-methods)
-  - [Query Methods](#query-methods)
-  - [Validation Methods](#validation-methods)
+  - [Traversal Operation Methods](#traversal-operation-methods)
+  - [Conditional Search Methods](#conditional-search-methods)
+  - [Index Access Methods](#index-access-methods)
+  - [Node Operation Methods](#node-operation-methods)
+  - [Format Conversion Methods](#format-conversion-methods)
+  - [Clone and Copy Methods](#clone-and-copy-methods)
+  - [Relationship Query Methods](#relationship-query-methods)
+  - [Data Validation Methods](#data-validation-methods)
+  - [Aggregation Analysis Methods](#aggregation-analysis-methods)
 - [Custom Field Names](#custom-field-names)
 - [Testing](#testing)
 - [Development](#development)
 
 ## ✨ Features
 
-- **Lightweight** - Each format bundle size is only 8.2-8.5 KB (ESM: 8.24 KB, CJS: 8.51 KB, UMD: 8.52 KB), minimal impact on project size
-- **Tree-shaking Support** - Supports on-demand imports, only bundles the code you actually use, further reducing bundle size
-- **Full TypeScript Support** - Provides complete type definitions and IntelliSense, improving development experience
-- **Flexible Custom Field Names** - Supports custom children and id field names, adapting to various data structures
-- **Zero Dependencies** - No external dependencies, ready to use out of the box, no need to worry about dependency conflicts
-- **Comprehensive Test Coverage** - Contains 328 test cases with 99%+ test coverage (99% statement coverage, 98.41% branch coverage, 100% function coverage, 98.99% line coverage), covering basic functionality, edge cases, error handling, and complex scenarios
-- **Rich API** - Provides 32+ methods, including array-like APIs (map, filter, find, some, every, includes, at, indexOf, etc.), and tree-specific operations (get parent/child nodes, depth calculation, data validation, format conversion, etc.), covering complete scenarios for traversal, search, modification, conversion, and validation
-
-**Supported methods:** mapTree, forEachTree, filterTree, findTree, pushTree, unshiftTree, popTree, shiftTree, someTree, everyTree, includesTree, atTree, indexOfTree, atIndexOfTree, dedupTree, removeTree, getParentTree, getChildrenTree, getSiblingsTree, getNodeDepthMap, getNodeDepth, isLeafNode, isRootNode, isEmptyTreeData, isEmptySingleTreeData, isTreeData, isSingleTreeData, isValidTreeNode, isTreeNodeWithCircularCheck, isSafeTreeDepth, convertToArrayTree, convertBackTree, convertToMapTree, convertToLevelArrayTree, convertToObjectTree. The last parameter of each method can customize the property names for children and id.
+- **Multiple Format Support** - Provides ESM, CJS, UMD formats, bundle size only 14.9-15.2 KB, supports Tree-shaking, on-demand imports
+- **Zero Dependencies** - No external dependencies, ready to use
+- **High Performance** - Average execution time < 0.03ms on medium-sized trees (~120 nodes)
+- **Complete Functionality** - 50+ APIs covering traversal, search, modification, conversion, query, analysis, and validation
+- **Comprehensive Testing** - 447 test cases with 99%+ coverage
 
 ### 💡 Use Cases
 
@@ -153,7 +151,9 @@ const treeData = [
 
 ---
 
-## Traversal Methods
+## Traversal Operation Methods
+
+Methods for traversing tree-structured data and performing operations on each node.
 
 ### mapTree
 
@@ -202,7 +202,9 @@ console.log(nodeCount) // Total number of nodes
 
 ---
 
-## Search Methods
+## Conditional Search Methods
+
+Methods for finding nodes by conditions or predicate functions.
 
 ### filterTree
 
@@ -285,7 +287,9 @@ console.log(allHaveName) // Returns true or false based on actual data
 
 ---
 
-## Access Methods
+## Index Access Methods
+
+Methods for accessing nodes by position index or index path.
 
 ### atTree
 
@@ -345,7 +349,9 @@ console.log(invalidPath) // null
 
 ---
 
-## Modification Methods
+## Node Operation Methods
+
+Methods for adding, removing, and modifying nodes in tree structures.
 
 ### pushTree
 
@@ -375,26 +381,30 @@ console.log(treeData) // New node has been added to the beginning of the childre
 
 ### popTree
 
-Remove the last child node under the specified node. Returns the removed node, or false if the node doesn't exist or has no children.
+Remove the last child node under the specified node. Returns the removed node, or null if the node doesn't exist or has no children.
 
 ```javascript
 // Remove the last child node under the node with ID 1
 const removedNode = t.popTree(treeData, 1)
-console.log(removedNode) // Returns the removed node object, or false
+console.log(removedNode) // Returns the removed node object, or null
 
 // Try to remove from a non-existent node
 const popFailed = t.popTree(treeData, 999)
-console.log(popFailed) // false
+console.log(popFailed) // null
 ```
 
 ### shiftTree
 
-Remove the first child node under the specified node. Returns the removed node, or false if the node doesn't exist or has no children.
+Remove the first child node under the specified node. Returns the removed node, or null if the node doesn't exist or has no children.
 
 ```javascript
 // Remove the first child node under the node with ID 1
 const shiftedNode = t.shiftTree(treeData, 1)
-console.log(shiftedNode) // Returns the removed node object, or false
+console.log(shiftedNode) // Returns the removed node object, or null
+
+// Try to remove from a non-existent node
+const shiftFailed = t.shiftTree(treeData, 999)
+console.log(shiftFailed) // null
 ```
 
 ### removeTree
@@ -408,6 +418,90 @@ const removeSuccess = t.removeTree(treeData, nodeIdToRemove)
 console.log(removeSuccess) // true means successful removal, false means node not found
 console.log(treeData) // Tree structure after removal
 ```
+
+### concatTree
+
+Concatenate multiple tree-structured data arrays, returns a new concatenated tree (deep cloned).
+
+```javascript
+const tree1 = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+const tree2 = [
+  { id: 3, name: 'node3' }
+]
+
+// Concatenate multiple trees
+const result = t.concatTree(tree1, tree2)
+console.log(result) // [{ id: 1, name: 'node1' }, { id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**Parameters:**
+- `...trees`: Multiple tree-structured data arrays (variadic arguments)
+
+**Notes:**
+- All trees are deep cloned, won't modify the original trees
+- Supports concatenating any number of tree structures
+
+### sortTree
+
+Sort tree-structured data, recursively sorts all levels.
+
+```javascript
+const tree = [
+  { id: 3, name: 'node3' },
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' }
+]
+
+// Sort by id
+const sorted = t.sortTree(tree, (a, b) => a.id - b.id)
+console.log(sorted) 
+// [{ id: 1, name: 'node1' }, { id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `compareFn`: Comparison function, same as `Array.sort`'s `compareFn` (optional)
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Recursively sorts nodes at all levels
+- Returns a new sorted tree (deep cloned), won't modify the original tree
+- Uses default sorting if `compareFn` is not provided
+
+### sliceTree
+
+Slice the root nodes of tree-structured data (similar to array's `slice`).
+
+```javascript
+const tree = [
+  { id: 1, name: 'node1' },
+  { id: 2, name: 'node2' },
+  { id: 3, name: 'node3' }
+]
+
+// Slice: get nodes from index 1 to 3
+const sliced = t.sliceTree(tree, 1, 3)
+console.log(sliced) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+
+// Supports negative indices
+const lastTwo = t.sliceTree(tree, -2)
+console.log(lastTwo) // [{ id: 2, name: 'node2' }, { id: 3, name: 'node3' }]
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `start`: Start index (inclusive), optional
+- `end`: End index (exclusive), optional
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Only slices root nodes, doesn't recursively process children
+- Returns a new sliced tree (deep cloned), won't modify the original tree
+- Supports negative indices (calculated from the end)
+- Child node structures are completely preserved
 
 ### dedupTree
 
@@ -447,13 +541,16 @@ const uniqueByComplex = t.dedupTree(treeData, (node) => `${node.id}-${node.type}
 ```
 
 **Notes:**
-- If the key value is `undefined` or `null`, the node will not be deduplicated (all will be kept)
+- If the dedupKey value is `undefined` or `null`, the node will not be deduplicated (all will be kept)
 - Multiple fields combined deduplication uses the combination of field values to determine duplicates
 - Recursively processes all levels of child nodes
+- **Performance Optimization**: Multiple fields combined deduplication has been optimized, using efficient delimiter concatenation instead of JSON.stringify for better performance
 
 ---
 
-## Conversion Methods
+## Format Conversion Methods
+
+Methods for converting between different data formats (array, Map, object, etc.).
 
 ### convertToArrayTree
 
@@ -727,7 +824,169 @@ console.log(treeFromRecord) // Correctly converted to tree structure
 
 ---
 
-## Query Methods
+## Clone and Copy Methods
+
+Methods for copying tree-structured data (deep copy, shallow copy, subtree copy, etc.).
+
+### cloneTree
+
+Deep clone tree-structured data, returns a completely independent copy without modifying the original tree.
+
+```javascript
+const original = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// Deep clone
+const cloned = t.cloneTree(original)
+
+// Modifying the cloned tree won't affect the original
+cloned[0].name = 'modified'
+console.log(original[0].name) // 'node1'
+console.log(cloned[0].name)   // 'modified'
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Recursively deep clones all levels of nodes and children
+- Returns a tree completely independent from the original, modifications won't affect each other
+- Supports custom field name configuration
+
+### shallowCloneTree
+
+Shallow clone tree-structured data (only copies the first level, children share references). Better performance than deep clone, suitable for scenarios where only the top-level structure needs to be copied.
+
+```javascript
+const original = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// Shallow clone
+const cloned = t.shallowCloneTree(original)
+
+// Modifying the first level won't affect the original
+cloned[0].name = 'modified'
+console.log(original[0].name) // 'node1'
+
+// But children share references, modifying children will affect the original
+cloned[0].children[0].name = 'changed'
+console.log(original[0].children[0].name) // 'changed'
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Only copies the first level of nodes, children maintain shared references
+- Better performance than deep clone, suitable for scenarios where only top-level independence is needed
+- Modifying children will affect the original tree
+
+### cloneSubtree
+
+Clone a subtree starting from the specified node. Returns a deep copy containing the target node and all its children. Supports finding nodes by any field.
+
+```javascript
+const tree = [
+  {
+    id: 1,
+    name: 'root',
+    children: [
+      { id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] },
+      { id: 3, name: 'sub2' }
+    ]
+  }
+]
+
+// Find by id field
+const subtree1 = t.cloneSubtree(tree, { id: 2 })
+console.log(subtree1)
+// [{ id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] }]
+
+// Find by name field
+const subtree2 = t.cloneSubtree(tree, { name: 'sub1' })
+console.log(subtree2)
+// [{ id: 2, name: 'sub1', children: [{ id: 4, name: 'sub1-1' }] }]
+
+// Find by other field (e.g., code)
+const treeWithCode = [
+  {
+    id: 1,
+    code: 'A001',
+    children: [
+      { id: 2, code: 'B001', children: [{ id: 4, code: 'C001' }] }
+    ]
+  }
+]
+const subtree3 = t.cloneSubtree(treeWithCode, { code: 'B001' })
+console.log(subtree3)
+// [{ id: 2, code: 'B001', children: [{ id: 4, code: 'C001' }] }]
+
+// Support custom children field name
+const customTree = [
+  { nodeId: 1, subNodes: [{ nodeId: 2 }] }
+]
+const subtree4 = t.cloneSubtree(customTree, { nodeId: 2 }, { children: 'subNodes', id: 'nodeId' })
+console.log(subtree4)
+// [{ nodeId: 2 }]
+
+// Modifying the cloned subtree won't affect the original
+subtree1[0].name = 'modified'
+console.log(tree[0].children[0].name) // 'sub1'
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `target`: Target node object, e.g., `{ id: 1 }` or `{ name: 'sub1' }` or `{ code: 'B001' }`, object must contain only one field
+- `fieldNames`: Custom field name configuration (optional, used to customize `children` field name, search field is determined by the key name in the `target` object)
+
+**Notes:**
+- Returns a subtree containing the target node (deep cloned)
+- Returns an empty array if the target node is not found
+- Recursively deep clones all child nodes
+- Must pass an object, search field is determined by the object's key name (e.g., `{ id: 1 }` searches by `id` field, `{ name: 'xxx' }` searches by `name` field)
+- `fieldNames` parameter is used to customize `children` field name, defining `id` has no effect
+
+### cloneWithTransform
+
+Clone tree-structured data and apply a transform function to each node. Suitable for modifying node data while cloning.
+
+```javascript
+const tree = [
+  { id: 1, name: 'node1', children: [{ id: 2, name: 'node2' }] }
+]
+
+// Clone and add label field
+const cloned = t.cloneWithTransform(tree, (node) => ({
+  ...node,
+  label: node.name,
+  processed: true
+}))
+
+console.log(cloned[0].label) // 'node1'
+console.log(cloned[0].processed) // true
+console.log(cloned[0].children[0].label) // 'node2'
+console.log(tree[0].label) // undefined (original tree not modified)
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `transform`: Transform function that receives a node and returns the transformed node
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Recursively transforms all levels of nodes
+- Returns the transformed tree (deep cloned), won't modify the original tree
+- The transform function should return a new node object
+
+---
+
+## Relationship Query Methods
+
+Methods for getting relationship information between nodes (parent-child relationships, sibling relationships, depth, etc.).
 
 ### getParentTree
 
@@ -878,7 +1137,9 @@ console.log(depth) // 2
 
 ---
 
-## Validation Methods
+## Data Validation Methods
+
+Methods for validating the validity of tree-structured data and node types.
 
 ### isLeafNode
 
@@ -929,6 +1190,8 @@ console.log(t.isLeafNode(customNode, fieldNames)) // true
 ### isRootNode
 
 Check if a node is a root node (has no parent). Root nodes are top-level nodes in the tree-structured data array.
+
+**Performance Optimization**: Optimized to use a single traversal, avoiding duplicate tree traversals.
 
 ```javascript
 // Check root node
@@ -1277,6 +1540,435 @@ console.log(t.isSafeTreeDepth(customTree, 2, fieldNames)) // false
 - Prevent recursion call stack overflow
 - Performance optimization, avoid processing trees that are too deep
 
+---
+
+## Aggregation Analysis Methods
+
+Methods for aggregating, statistics, and analyzing tree-structured data.
+
+### reduceTree
+
+Reduce tree-structured data, traverses all nodes and accumulates results.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20, children: [{ id: 3, value: 30 }] }
+]
+
+// Calculate the sum of all node values
+const sum = t.reduceTree(tree, (acc, node) => acc + (node.value || 0), 0)
+console.log(sum) // 60
+
+// Collect all node IDs
+const ids = t.reduceTree(tree, (ids, node) => {
+  ids.push(node.id)
+  return ids
+}, [])
+console.log(ids) // [1, 2, 3]
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `reducer`: Reduction function that receives accumulator and current node, returns new accumulator
+- `initialValue`: Initial value
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Traverses all nodes in depth-first order
+- Can be used to implement various aggregation operations
+
+---
+
+### aggregateTree
+
+Aggregate tree-structured data by groups, supports multiple aggregation operations (sum, average, max, min, count).
+
+```javascript
+const tree = [
+  { id: 1, category: 'A', value: 10, score: 80 },
+  { id: 2, category: 'A', value: 20, score: 90 },
+  { id: 3, category: 'B', value: 30, score: 70, children: [{ id: 4, category: 'B', value: 40, score: 85 }] }
+]
+
+// Aggregate by category
+const result = t.aggregateTree(tree, {
+  groupBy: node => node.category,
+  aggregations: {
+    totalValue: { operation: 'sum', field: 'value' },
+    avgScore: { operation: 'avg', field: 'score' },
+    maxValue: { operation: 'max', field: 'value' },
+    count: { operation: 'count' }
+  }
+})
+
+console.log(result)
+// {
+//   'A': { totalValue: 30, avgScore: 85, maxValue: 20, count: 2 },
+//   'B': { totalValue: 70, avgScore: 77.5, maxValue: 40, count: 2 }
+// }
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `options`: Aggregation options
+  - `groupBy`: Grouping function that receives a node and returns a group key
+  - `aggregations`: Aggregation configuration object, key is result field name, value is aggregation config
+    - `operation`: Aggregation operation type ('sum' | 'avg' | 'max' | 'min' | 'count')
+    - `field`: Field name to aggregate (not needed for count operation)
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Supports multiple aggregation operations simultaneously
+- Recursively processes all levels of nodes
+- Count operation counts node quantity, doesn't need field parameter
+
+---
+
+### groupTree
+
+Group tree-structured data by field, returns node arrays grouped by field value.
+
+```javascript
+const tree = [
+  { id: 1, category: 'A' },
+  { id: 2, category: 'A' },
+  { id: 3, category: 'B', children: [{ id: 4, category: 'B' }] }
+]
+
+// Group by category field
+const grouped = t.groupTree(tree, 'category')
+console.log(grouped)
+// {
+//   'A': [{ id: 1, category: 'A' }, { id: 2, category: 'A' }],
+//   'B': [{ id: 3, category: 'B' }, { id: 4, category: 'B' }]
+// }
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `field`: Grouping field name
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Returns references to original nodes, not deep copies
+- Recursively processes all levels of nodes
+
+---
+
+### groupByTree
+
+Group tree-structured data by condition, uses custom function to determine group key.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 10, children: [{ id: 4, value: 30 }] }
+]
+
+// Group by whether value is >= 20
+const grouped = t.groupByTree(tree, node => node.value >= 20 ? 'high' : 'low')
+console.log(grouped)
+// {
+//   'low': [{ id: 1, value: 10 }, { id: 3, value: 10 }],
+//   'high': [{ id: 2, value: 20 }, { id: 4, value: 30 }]
+// }
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `groupFn`: Grouping function that receives a node and returns a group key
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Group keys are converted to strings
+- Returns references to original nodes, not deep copies
+
+---
+
+### sumTree
+
+Calculate the sum of a field in tree-structured data.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20, children: [{ id: 3, value: 30 }] }
+]
+
+// Calculate sum of value field
+const total = t.sumTree(tree, 'value')
+console.log(total) // 60
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `field`: Field name
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Missing or null/undefined values are treated as 0
+- Recursively processes all levels of nodes
+
+---
+
+### avgTree
+
+Calculate the average value of a field in tree-structured data.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 30 }
+]
+
+// Calculate average of value field
+const average = t.avgTree(tree, 'value')
+console.log(average) // 20
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `field`: Field name
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Ignores null and undefined values
+- Returns 0 if all values are null/undefined
+
+---
+
+### maxTree
+
+Get the maximum value of a field in tree-structured data.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 30 },
+  { id: 3, value: 20 }
+]
+
+// Get maximum value of value field
+const max = t.maxTree(tree, 'value')
+console.log(max) // 30
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `field`: Field name
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Only processes numeric values
+- Returns null if tree is empty or has no valid values
+
+---
+
+### minTree
+
+Get the minimum value of a field in tree-structured data.
+
+```javascript
+const tree = [
+  { id: 1, value: 30 },
+  { id: 2, value: 10 },
+  { id: 3, value: 20 }
+]
+
+// Get minimum value of value field
+const min = t.minTree(tree, 'value')
+console.log(min) // 10
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `field`: Field name
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Only processes numeric values
+- Returns null if tree is empty or has no valid values
+
+---
+
+### countTree
+
+Count the number of nodes in tree-structured data that meet a condition.
+
+```javascript
+const tree = [
+  { id: 1, value: 10 },
+  { id: 2, value: 20 },
+  { id: 3, value: 10, children: [{ id: 4, value: 30 }] }
+]
+
+// Count all nodes
+const total = t.countTree(tree)
+console.log(total) // 4
+
+// Count nodes that meet condition
+const count = t.countTree(tree, node => node.value === 10)
+console.log(count) // 2
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `conditionFn`: Condition function (optional), if not provided counts all nodes
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Counts all nodes if condition function is not provided
+- Recursively processes all levels of nodes
+
+---
+
+### getTreeStats
+
+Get comprehensive statistics of tree-structured data.
+
+```javascript
+const tree = [
+  { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] }
+]
+
+// Get statistics
+const stats = t.getTreeStats(tree)
+console.log(stats)
+// {
+//   totalNodes: 4,      // Total number of nodes
+//   leafNodes: 2,       // Number of leaf nodes
+//   maxDepth: 3,        // Maximum depth
+//   minDepth: 1,        // Minimum depth
+//   avgDepth: 2,        // Average depth
+//   levels: 3            // Number of levels (equals maxDepth)
+// }
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `fieldNames`: Custom field name configuration (optional)
+
+**Notes:**
+- Returns complete statistics object
+- Empty tree returns statistics with all values as 0
+
+---
+
+### analyzeTree
+
+Comprehensively analyze tree-structured data, providing detailed statistics, distribution, balance analysis, and more.
+
+```javascript
+const tree = [
+  { id: 1, children: [{ id: 2 }, { id: 3, children: [{ id: 4 }] }] }
+]
+
+// Comprehensive tree structure analysis
+const analysis = t.analyzeTree(tree)
+console.log(analysis)
+// {
+//   // Basic Statistics
+//   totalNodes: 4,           // Total number of nodes
+//   leafNodes: 2,            // Number of leaf nodes
+//   internalNodes: 2,        // Number of internal nodes
+//   maxDepth: 3,             // Maximum depth
+//   minDepth: 1,             // Minimum depth
+//   avgDepth: 2,             // Average depth
+//   levels: 3,                // Number of levels
+//   
+//   // Level Analysis
+//   byLevel: { 0: 1, 1: 2, 2: 1 },  // Node count by level
+//   maxWidth: 2,              // Maximum width (max nodes in a single level)
+//   avgWidth: 1.33,          // Average width
+//   widthByLevel: { 0: 1, 1: 2, 2: 1 },  // Width per level
+//   
+//   // Branching Factor Analysis
+//   avgBranchingFactor: 1.5,  // Average branching factor (avg children per node)
+//   maxBranchingFactor: 2,      // Maximum branching factor
+//   minBranchingFactor: 1,      // Minimum branching factor
+//   branchingFactorDistribution: { 1: 1, 2: 1 },  // Branching factor distribution
+//   
+//   // Depth Distribution
+//   depthDistribution: { 1: 1, 2: 2, 3: 1 },  // Node count by depth
+//   
+//   // Balance Analysis
+//   depthVariance: 0.5,       // Depth variance (smaller = more balanced)
+//   isBalanced: true,          // Whether tree is balanced
+//   balanceRatio: 0.33,        // Balance ratio (minDepth/maxDepth)
+//   
+//   // Path Analysis
+//   avgPathLength: 2.25,      // Average path length
+//   maxPathLength: 3,         // Maximum path length
+//   minPathLength: 1,         // Minimum path length
+//   
+//   // Leaf Node Analysis
+//   leafNodeRatio: 0.5,       // Leaf node ratio
+//   leafNodesByLevel: { 2: 1, 3: 1 }  // Leaf nodes per level
+// }
+```
+
+**Parameters:**
+- `tree`: Tree-structured data
+- `options`: Analysis options (optional), can specify which statistics to calculate, defaults to calculating all statistics
+  - `includeBasic`: Whether to include basic statistics (totalNodes, leafNodes, internalNodes, maxDepth, minDepth, avgDepth, levels), default `true`
+  - `includeLevelAnalysis`: Whether to include level analysis (byLevel, maxWidth, avgWidth, widthByLevel), default `true`
+  - `includeBranchingFactor`: Whether to include branching factor analysis (avgBranchingFactor, maxBranchingFactor, minBranchingFactor, branchingFactorDistribution), default `true`
+  - `includeDepthDistribution`: Whether to include depth distribution (depthDistribution), default `true`
+  - `includeBalanceAnalysis`: Whether to include balance analysis (depthVariance, isBalanced, balanceRatio), default `true`
+  - `includePathAnalysis`: Whether to include path analysis (avgPathLength, maxPathLength, minPathLength), default `true`
+  - `includeLeafAnalysis`: Whether to include leaf node analysis (leafNodeRatio, leafNodesByLevel), default `true`
+- `fieldNames`: Custom field name configuration (optional)
+
+```javascript
+// Calculate only basic statistics and branching factor (performance optimization)
+const quickAnalysis = t.analyzeTree(tree, {
+  includeBasic: true,
+  includeBranchingFactor: true,
+  includeLevelAnalysis: false,
+  includeDepthDistribution: false,
+  includeBalanceAnalysis: false,
+  includePathAnalysis: false,
+  includeLeafAnalysis: false,
+})
+console.log(quickAnalysis.totalNodes) // 4
+console.log(quickAnalysis.maxBranchingFactor) // 2
+console.log(quickAnalysis.byLevel) // {} (not calculated)
+
+// Calculate only balance analysis
+const balanceAnalysis = t.analyzeTree(tree, {
+  includeBasic: true,
+  includeBalanceAnalysis: true,
+  includeLevelAnalysis: false,
+  includeBranchingFactor: false,
+  includeDepthDistribution: false,
+  includePathAnalysis: false,
+  includeLeafAnalysis: false,
+})
+console.log(balanceAnalysis.isBalanced) // true/false
+console.log(balanceAnalysis.depthVariance) // 0.5
+```
+
+**Analysis information includes:**
+
+1. **Basic Statistics**: Total nodes, leaf nodes, internal nodes, depth information, etc.
+2. **Level Analysis**: Nodes per level, maximum width, average width, etc.
+3. **Branching Factor Analysis**: Average/max/min branching factor, branching factor distribution, etc.
+4. **Depth Distribution**: Number of nodes at each depth
+5. **Balance Analysis**: Depth variance, whether balanced, balance ratio, etc.
+6. **Path Analysis**: Average/max/min path length
+7. **Leaf Node Analysis**: Leaf node ratio, leaf nodes per level
+
+**Notes:**
+- Provides comprehensive tree structure analysis, suitable for performance optimization, structure evaluation, etc.
+- `isBalanced` is determined based on depth variance and depth range. A tree is considered balanced if depth variance < 2 and depth range ≤ 2
+- `balanceRatio` closer to 1 indicates a more balanced tree
+- **Performance Optimization**: Use the `options` parameter to calculate only the needed statistics, which can significantly improve performance for large tree structures
+
+---
+
 ## Custom Field Names
 
 All methods support custom property names for children and id through the last parameter, passing in a configuration object:
@@ -1297,16 +1989,16 @@ const foundNode2 = t.findTree(customTreeData, (node) => node.nodeId === 2, field
 ### Run Tests
 
 ```bash
-# Run all tests (automatically build then test source + bundled files, 656 test cases)
+# Run all tests (automatically build then test source + bundled files, 712 test cases)
 npm test
 
 # Run all tests (once, don't watch for file changes)
 npm test -- --run
 
-# Test source code only (328 test cases)
+# Test source code only (447 test cases)
 npm run test:src
 
-# Test bundled files only (328 test cases, requires npm run build first)
+# Test bundled files only (447 test cases, requires npm run build first)
 npm run test:dist
 
 # Run tests and generate coverage report
